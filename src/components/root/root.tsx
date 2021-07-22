@@ -1,6 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 
-import { board_width, board_height, sprite_element_width } from '../../utils/common-data';
+import {
+	board_width,
+	board_height,
+	sprite_element_width,
+	GRID_ELEMENTS_LEVEL1,
+	SPRITES_ELEMENTS
+} from '../../utils/common-data';
 // import canvasContext from '../../context/canvas-context';
 import Sprite from '../../utils/sprite';
 import sprite_url from '../../assets/sprite.png';
@@ -37,10 +43,63 @@ export const Root = () => {
 	const active_keys: activeKeys = useRef(null);
 	const current_animation_frame: any = useRef(null);
 	const canvas_ref: any = useRef(null);
-	const img_coordinates_ref: imgCoordinatesRef = useRef({ img_x: 0, img_y: 0 });
+	const tank_img_coordinates_ref: imgCoordinatesRef = useRef({ img_x: 0, img_y: 0 });
 	const step_axis_ref: stepAxisRef = useRef({ step_x: 0, step_y: 0 });
 	// const { _canvas } = useContext(canvasContext);
 	
+	const initGameboardLevels = useCallback(() => {
+		const canvas = canvas_ref.current;
+		const context = canvas.getContext('2d');
+		const { image } = sprite;
+
+		GRID_ELEMENTS_LEVEL1.forEach((row, row_index) => {
+			row.forEach((cell, cell_index) => {
+				const [x, y, width, height] = SPRITES_ELEMENTS[cell];
+				context.drawImage(
+					image,
+					x, y, width, height,
+					cell_index * sprite_element_width, row_index * sprite_element_width, width, height
+				);
+			});
+		})
+	}, []);
+
+	const handleTankImgCoordinates = (key: string) => {
+		switch (key) {
+			case 'ArrowUp':
+				tank_img_coordinates_ref.current = {
+					img_x: 0 * sprite_element_width,
+					img_y: 0
+				};
+				break;
+			case 'ArrowRight':
+				tank_img_coordinates_ref.current = {
+					img_x: 6 * sprite_element_width,
+					img_y: 0
+				};
+				break;
+			case 'ArrowDown':
+				tank_img_coordinates_ref.current = {
+					img_x: 4 * sprite_element_width,
+					img_y: 0
+				};
+				break;
+			case 'ArrowLeft':
+				tank_img_coordinates_ref.current = {
+					img_x: 2 * sprite_element_width,
+					img_y: 0
+				};
+				break;
+		
+			default:
+				tank_img_coordinates_ref.current = {
+					img_x: 0 * sprite_element_width,
+					img_y: 0
+				};
+				break;
+		}
+	}
+
 	const handleKeyDownPress = useCallback(event => {
 		event.preventDefault();
 		const { code } = event;
@@ -51,48 +110,65 @@ export const Root = () => {
 			active_keys.current = new Set();
 			active_keys.current.add(code);
 		}
+		handleTankImgCoordinates(code);
 		switch (code) {
 			case 'ArrowUp':
-				img_coordinates_ref.current = {
-					img_x: 0 * sprite_element_width,
-					img_y: 0
-				};
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const dead_end = tank_y <= 0;
 
-				setTankCoordinates(({ tank_x, tank_y }) => ({
-					tank_x: tank_x,
-					tank_y: tank_y - 1
-				}));
+					if (dead_end) {
+						renderTank(sprite, { tank_x, tank_y });
+					}
+
+					return {
+						tank_x: tank_x,
+						tank_y: dead_end ? 0 : tank_y - 1
+					}
+				});
 				break;
 			case 'ArrowRight':
-				img_coordinates_ref.current = {
-					img_x: 6 * sprite_element_width,
-					img_y: 0
-				};
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const right_edge = board_width - sprite_element_width;
+					const dead_end = tank_x >= right_edge;
 
-				setTankCoordinates(({ tank_x, tank_y }) => ({
-					tank_x: tank_x + 1,
-					tank_y: tank_y
-				}));
+					if (dead_end) {
+						renderTank(sprite, { tank_x, tank_y });
+					}
+
+					return {
+						tank_x: dead_end ? right_edge : tank_x + 1,
+						tank_y: tank_y
+					}
+				});
 				break;
 			case 'ArrowDown':
-				img_coordinates_ref.current = {
-					img_x: 4 * sprite_element_width,
-					img_y: 0
-				};
-				setTankCoordinates(({ tank_x, tank_y }) => ({
-					tank_x: tank_x,
-					tank_y: tank_y + 1
-				}));
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const right_edge = board_width - sprite_element_width;
+					const dead_end = tank_y >= right_edge;
+
+					if (dead_end) {
+						renderTank(sprite, { tank_x, tank_y });
+					}
+
+					return {
+						tank_x: tank_x,
+						tank_y: dead_end ? right_edge : tank_y + 1
+					};
+				});
 				break;
 			case 'ArrowLeft':
-				img_coordinates_ref.current = {
-					img_x: 2 * sprite_element_width,
-					img_y: 0
-				};
-				setTankCoordinates(({ tank_x, tank_y }) => ({
-					tank_x: tank_x - 1,
-					tank_y: tank_y
-				}));
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const dead_end = tank_x <= 0;
+
+					if (dead_end) {
+						renderTank(sprite, { tank_x, tank_y });
+					}
+
+					return {
+						tank_x: dead_end ? 0 : tank_x - 1,
+						tank_y: tank_y
+					}
+				});
 				break;
 			case 'Space':
 				break;
@@ -127,35 +203,41 @@ export const Root = () => {
 			step_x: step_axis_ref.current.step_x ^ 1,
 			step_y: 0
 		}
-		if (active_keys.current && active_keys.current.has('ArrowUp')) {
+		const last_pushed_key = active_keys.current && Array.from(active_keys.current).pop() || '';
+		handleTankImgCoordinates(last_pushed_key);
+
+		if (active_keys.current && active_keys.current.has('ArrowUp') && last_pushed_key === 'ArrowUp') {
 			setTankCoordinates(({ tank_x, tank_y }) => ({
 				tank_x: tank_x,
-				tank_y: tank_y - 1
+				tank_y: tank_y <= 0 ? 0 : tank_y - 1
 			}));
 		}
 
-		if (active_keys.current && active_keys.current.has('ArrowDown')) {
-			setTankCoordinates(({ tank_x, tank_y }) => ({
-				tank_x: tank_x,
-				tank_y: tank_y + 1
-			}));
-		}
+		else if (active_keys.current && active_keys.current.has('ArrowRight') && last_pushed_key === 'ArrowRight') {
+			const right_edge = board_width - sprite_element_width;
 
-		if (active_keys.current && active_keys.current.has('ArrowLeft')) {
 			setTankCoordinates(({ tank_x, tank_y }) => ({
-				tank_x: tank_x - 1,
+				tank_x: tank_x >= right_edge ? right_edge : tank_x + 1,
 				tank_y: tank_y
 			}));
 		}
 
-		if (active_keys.current && active_keys.current.has('ArrowRight')) {
+		else if (active_keys.current && active_keys.current.has('ArrowDown') && last_pushed_key === 'ArrowDown') {
+			const bottom_edge = board_width - sprite_element_width;
+
 			setTankCoordinates(({ tank_x, tank_y }) => ({
-				tank_x: tank_x + 1,
+				tank_x: tank_x,
+				tank_y: tank_y >= bottom_edge ? bottom_edge : tank_y + 1
+			}));
+		}
+
+		else if (active_keys.current && active_keys.current.has('ArrowLeft') && last_pushed_key === 'ArrowLeft') {
+			setTankCoordinates(({ tank_x, tank_y }) => ({
+				tank_x: tank_x <= 0 ? 0 : tank_x - 1,
 				tank_y: tank_y
 			}));
 		}
-		
-		// console.log(active_keys.current);
+
 		current_animation_frame.current = requestAnimationFrame(loop);
 	};
 
@@ -172,13 +254,10 @@ export const Root = () => {
 		const canvas = canvas_ref.current;
 		const context = canvas.getContext('2d');
 		const { image } = sprite;
-		const { tank_x, tank_y } = tank_coordinates;
-		const { img_x, img_y } = img_coordinates_ref.current;
+		let { tank_x, tank_y } = tank_coordinates;
+		const { img_x, img_y } = tank_img_coordinates_ref.current;
 		const { step_x } = step_axis_ref.current;
 
-		console.log(img_x, img_y);
-		console.log(tank_x, tank_y);
-		console.log(step_x);
 		clearScreen(context);
 		context.drawImage(
 				image,
@@ -197,6 +276,7 @@ export const Root = () => {
 		sprite
 			.load()
 			.then((image) => {
+				initGameboardLevels();
 				return renderTank(sprite, tank_coordinates);
 			})
 			.catch(error => {

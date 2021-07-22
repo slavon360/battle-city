@@ -1,45 +1,34 @@
+export const sprite_element_width = 16;
 export const OBJECT_TYPE = {
-	ENEMY_JUNIOR: 'enemy-junior',
-	BLANK: 'blank',
-	BRICK: 'brick',
-	FORTRESS: 'fortress',
-	TANK: 'tank'
+	BLANK: [336, 0, sprite_element_width, sprite_element_width],
+	FORTRESS: [19 * sprite_element_width, 2 * sprite_element_width, sprite_element_width, sprite_element_width],
+	BRICK: [sprite_element_width * sprite_element_width, 0, sprite_element_width, sprite_element_width]
 };
 
-export const CLASS_LIST = [
-	OBJECT_TYPE.ENEMY_JUNIOR,
+export const SPRITES_ELEMENTS = [
 	OBJECT_TYPE.BLANK,
-	OBJECT_TYPE.BRICK,
 	OBJECT_TYPE.FORTRESS,
-	OBJECT_TYPE.TANK
+	OBJECT_TYPE.BRICK
 ];
 
-export const board_width = 500;
-export const board_height = 500;
-export const sprite_element_width = 16;
+export const board_width = sprite_element_width * 13;
+export const board_height = sprite_element_width * 13;
 
 export const GRID_SIZE = 20;
 export const CELL_SIZE = 20;
 
 export const GRID_ELEMENTS_LEVEL1 = [
-	0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 4, 2, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	[ 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0 ],
+	[ 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0 ], 
+	[ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 ], 
+	[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ]
 ]
