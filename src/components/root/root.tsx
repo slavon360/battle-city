@@ -5,13 +5,16 @@ import {
 	board_height,
 	sprite_element_width,
 	GRID_ELEMENTS_LEVEL1,
-	TYPES
+	TYPES,
+	DAMAGE_LEVEL,
+	KEYBOARD_KEYS_DIRECTIONS,
+	KEYBOARD_KEY_SPACE,
+	FULL_STATE_VALUE
 	// SPRITES_ELEMENTS
 } from '../../utils/common-data';
 // import canvasContext from '../../context/canvas-context';
 import Sprite from '../../utils/sprite';
-import sprite_url from '../../assets/sprite.png';
-// import { Gameboard } from '../gameboard/gameboard';
+// import sprite_url from '../../assets/sprite.png';
 import './gameboard.css';
 
 interface activeKeys {
@@ -34,8 +37,8 @@ interface imgCoordinates {
 	img_y: number
 }
 
-interface imgCoordinatesRef {
-	current: imgCoordinates
+interface tankDirectionRef {
+	current: string | null
 }
 
 interface stepAxis {
@@ -47,7 +50,15 @@ interface stepAxisRef {
 	current: stepAxis
 }
 
-const sprite = new Sprite(sprite_url);
+interface tankSpeedRef {
+	current: number
+}
+
+interface tankLevelRef {
+	current: number
+}
+
+const sprite = new Sprite();
 
 export const Root = () => {
 	const [tank_coordinates, setTankCoordinates] = useState({ tank_x: 0, tank_y: 60 });
@@ -55,31 +66,65 @@ export const Root = () => {
 	const active_keys: activeKeys = useRef(null);
 	const current_animation_frame: any = useRef(null);
 	const canvas_ref: any = useRef(null);
-	const tank_img_coordinates_ref: imgCoordinatesRef = useRef({ img_x: 0, img_y: 0 });
+	const tank_direction_ref: tankDirectionRef = useRef(null);
 	const step_axis_ref: stepAxisRef = useRef({ step_x: 0, step_y: 0 });
 	const is_debug_ref: debug = useRef(false);
+	const tank_speed_ref: tankSpeedRef = useRef(2);
+	const tank_level_ref: tankLevelRef = useRef(1);
 	// const flattened_grid_ref: any = useRef(null);
 	
 	const initGameboardLevels = useCallback(() => {
 		const canvas = canvas_ref.current;
 		const context = canvas.getContext('2d');
-		const { image } = sprite;
+		const { images } = sprite;
 
 		GRID_ELEMENTS_LEVEL1.forEach((row, row_index) => {
 			row.forEach((cell, cell_index) => {
 				const {
-					sprite_x,
-					sprite_y,
+					element_pos_x,
+					element_pos_y,
 					sprite_width,
-					sprite_height
-				} = cell.type;
-				context.drawImage(
-					image,
-					sprite_x, sprite_y, sprite_width, sprite_height,
-					cell_index * sprite_element_width, row_index * sprite_element_width, sprite_width, sprite_height
-				);
+					sprite_height,
+					type_name
+				} = cell;
+
+				if (row_index === 0 && cell_index === 6) {
+					cell.setDamageLevel(DAMAGE_LEVEL.TOP3X);
+					cell.setDamageLevel(DAMAGE_LEVEL.BOTTOM_RIGHT2X);
+				}
+
+				if (type_name !== TYPES.BLANK) {
+					context.drawImage(
+						images[type_name],
+						element_pos_x, element_pos_y
+					);
+				}
+
+				if (cell.state < FULL_STATE_VALUE) {
+					context.beginPath();
+					// context.moveTo(element_pos_x, element_pos_y);
+					cell.damage_coordinates.forEach((val, index, coords) => {
+						if (index % 4 === 0) {
+							context.moveTo(...val);
+						}
+
+						
+						context.lineTo(...val);
+						// if (!(index % 2) && index) {
+						// 	const coord_x = coords[index - 1] || 0;
+						// 	const coord_y = coords[index] || 0;
+						// 	console.log(coord_x, coord_y);
+						// 	context.lineTo(cell_x + coord_x, element_pos_y + coord_y);
+						// }
+
+						if (coords.length === index + 1) {
+							// context.fillStyle = 'blue';
+							context.fill();
+						}
+					})
+				}
 			});
-		})
+		});
 	}, []);
 
 	const is_tank_on_the_same_axis_level_with_object = (type_name: string, tank_axis: number, element_axis: number) => {
@@ -147,7 +192,7 @@ export const Root = () => {
 
 		const cant_move = GRID_ELEMENTS_LEVEL1.find((row, row_index) => {
 			return row.find((cell, cell_index) => {
-				const { sprite_width, sprite_height, type_name } = cell.type;
+				const { sprite_width, sprite_height, type_name } = cell;
 				const element_x_begin = cell_index * sprite_width;
 				const element_x_end = element_x_begin + sprite_width;
 				const element_y_begin = row_index * sprite_height;
@@ -172,8 +217,22 @@ export const Root = () => {
 							adjusted_value = handle_tank_axis_adjustment(tank_x, tank_x_end, element_x_begin, element_x_end, sprite_element_width);
 
 							return true;
-						} else if (is_tank_opposite_to_object_at_y_axis(tank_x, tank_x_end, element_x_begin, element_x_end, sprite_element_width)) {
-							adjusted_value = adjusted_value || handle_tank_axis_adjustment(tank_x, tank_x_end, element_x_begin, element_x_end, sprite_element_width);
+						} else if (
+							is_tank_opposite_to_object_at_y_axis(
+								tank_x,
+								tank_x_end,
+								element_x_begin,
+								element_x_end,
+								sprite_element_width
+							)
+						) {
+							adjusted_value = adjusted_value || handle_tank_axis_adjustment(
+								tank_x,
+								tank_x_end,
+								element_x_begin,
+								element_x_end,
+								sprite_element_width
+							);
 
 							return false;
 						}
@@ -253,38 +312,23 @@ export const Root = () => {
 		return { cant_move, adjusted_value };
 	}
 
-	const handleTankImgCoordinates = (key: string) => {
+	const handleTankDirection = (key: string) => {
 		switch (key) {
 			case 'ArrowUp':
-				tank_img_coordinates_ref.current = {
-					img_x: 0 * sprite_element_width,
-					img_y: 0
-				};
+				tank_direction_ref.current = 'up';
 				break;
 			case 'ArrowRight':
-				tank_img_coordinates_ref.current = {
-					img_x: 6 * sprite_element_width,
-					img_y: 0
-				};
+				tank_direction_ref.current = 'right';
 				break;
 			case 'ArrowDown':
-				tank_img_coordinates_ref.current = {
-					img_x: 4 * sprite_element_width,
-					img_y: 0
-				};
+				tank_direction_ref.current = 'down';
 				break;
 			case 'ArrowLeft':
-				tank_img_coordinates_ref.current = {
-					img_x: 2 * sprite_element_width,
-					img_y: 0
-				};
+				tank_direction_ref.current = 'left';
 				break;
 		
 			default:
-				tank_img_coordinates_ref.current = {
-					img_x: 0 * sprite_element_width,
-					img_y: 0
-				};
+				tank_direction_ref.current = 'up';
 				break;
 		}
 	}
@@ -292,126 +336,145 @@ export const Root = () => {
 	const handleKeyDownPress = useCallback(event => {
 		const { code } = event;
 
-		if (active_keys.current) {
-			active_keys.current.add(code);
-		} else {
-			active_keys.current = new Set();
-			active_keys.current.add(code);
-		}
-		handleTankImgCoordinates(code);
-		switch (code) {
-			case 'ArrowUp':
-				setTankCoordinates(({ tank_x, tank_y }) => {
-					const dead_end = tank_y <= 0;
-					const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
+		if (KEYBOARD_KEYS_DIRECTIONS.includes(code)) {
+			if (active_keys.current) {
+				active_keys.current.add(code);
+			} else {
+				active_keys.current = new Set();
+				active_keys.current.add(code);
+			}
+			handleTankDirection(code);
+			switch (code) {
+				case 'ArrowUp':
+					setTankCoordinates(({ tank_x, tank_y }) => {
+						const dead_end = tank_y <= 0;
+						const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
 
-					if (dead_end || cant_move) {
-						renderTank(sprite, { tank_x, tank_y });
+						clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
+	
+						if (dead_end || cant_move) {
+							renderTank(sprite, { tank_x, tank_y });
+							return {
+								tank_x: tank_x + adjusted_value,
+								tank_y: tank_y
+							}	
+						}
+
+						if (adjusted_value) {
+							const point_x = adjusted_value < 0 ? (tank_x + sprite_element_width + adjusted_value) : tank_x;
+
+							// clearScreen(point_x, tank_y, Math.abs(adjusted_value), sprite_element_width);
+						}
+						
+						// clearScreen(tank_x, tank_y + sprite_element_width - 2, sprite_element_width, tank_speed_ref.current);
 						return {
 							tank_x: tank_x + adjusted_value,
-							tank_y: tank_y
-						}	
-					}
+							tank_y: dead_end ? 0 : tank_y - tank_speed_ref.current
+						}
+					});
+					event.preventDefault();
+					break;
+				case 'ArrowRight':
+					setTankCoordinates(({ tank_x, tank_y }) => {
+						const right_edge = board_width - sprite_element_width;
+						const dead_end = tank_x >= right_edge;
+						const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
 
-					return {
-						tank_x: tank_x + adjusted_value,
-						tank_y: dead_end ? 0 : tank_y - 1
-					}
-				});
-				event.preventDefault();
-				break;
-			case 'ArrowRight':
-				setTankCoordinates(({ tank_x, tank_y }) => {
-					const right_edge = board_width - sprite_element_width;
-					const dead_end = tank_x >= right_edge;
-					const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
+						clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
+	
+						if (dead_end || cant_move) {
+							renderTank(sprite, { tank_x, tank_y });
+	
+							return {
+								tank_x: tank_x,
+								tank_y: tank_y + adjusted_value
+							}
+						}
 
-					if (dead_end || cant_move) {
-						renderTank(sprite, { tank_x, tank_y });
+						if (adjusted_value) {
+							const point_y = adjusted_value < 0 ? (tank_y + sprite_element_width + adjusted_value) : tank_y;
 
+							// clearScreen(tank_x, point_y, sprite_element_width, Math.abs(adjusted_value));
+						}
+	
+						// clearScreen(tank_x - 1, tank_y, tank_speed_ref.current, sprite_element_width);
 						return {
-							tank_x: tank_x,
+							tank_x: dead_end ? right_edge : tank_x + tank_speed_ref.current,
 							tank_y: tank_y + adjusted_value
 						}
-					}
+					});
+					event.preventDefault();
+					break;
+				case 'ArrowDown':
+					setTankCoordinates(({ tank_x, tank_y }) => {
+						const right_edge = board_width - sprite_element_width;
+						const dead_end = tank_y >= right_edge;
+						const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
 
-					// if (canNotMove(code, tank_x, tank_y)) {
-					// 	return {
-					// 		tank_x: tank_x,
-					// 		tank_y: tank_y
-					// 	}
-					// }
+						clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
+	
+						if (dead_end || cant_move) {
+							renderTank(sprite, { tank_x, tank_y });
+	
+							return {
+								tank_x: tank_x + adjusted_value,
+								tank_y: tank_y
+							}
+						}
 
-					return {
-						tank_x: dead_end ? right_edge : tank_x + 1,
-						tank_y: tank_y + adjusted_value
-					}
-				});
-				event.preventDefault();
-				break;
-			case 'ArrowDown':
-				setTankCoordinates(({ tank_x, tank_y }) => {
-					const right_edge = board_width - sprite_element_width;
-					const dead_end = tank_y >= right_edge;
-					const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
+						if (adjusted_value) {
+							const point_x = adjusted_value < 0 ? (tank_x + sprite_element_width + adjusted_value) : tank_x;
 
-					if (dead_end || cant_move) {
-						renderTank(sprite, { tank_x, tank_y });
-
+							// clearScreen(point_x, tank_y, Math.abs(adjusted_value), sprite_element_width);
+						}
+	
+						// clearScreen(tank_x, tank_y - 1, sprite_element_width, tank_speed_ref.current);
 						return {
 							tank_x: tank_x + adjusted_value,
-							tank_y: tank_y
+							tank_y: dead_end ? right_edge : tank_y + tank_speed_ref.current
+						};
+					});
+					event.preventDefault();
+					break;
+				case 'ArrowLeft':
+					setTankCoordinates(({ tank_x, tank_y }) => {
+						const dead_end = tank_x <= 0;
+						const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
+
+						clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
+	
+						if (dead_end || cant_move) {
+							renderTank(sprite, { tank_x, tank_y });
+	
+							return {
+								tank_x: tank_x,
+								tank_y: tank_y + adjusted_value
+							}
 						}
-					}
 
-					// if (canNotMove(code, tank_x, tank_y)) {
-					// 	return {
-					// 		tank_x: tank_x,
-					// 		tank_y: tank_y
-					// 	}
-					// }
+						if (adjusted_value) {
+							const point_y = adjusted_value < 0 ? (tank_y + sprite_element_width + adjusted_value) : tank_y;
 
-					return {
-						tank_x: tank_x + adjusted_value,
-						tank_y: dead_end ? right_edge : tank_y + 1
-					};
-				});
-				event.preventDefault();
-				break;
-			case 'ArrowLeft':
-				setTankCoordinates(({ tank_x, tank_y }) => {
-					const dead_end = tank_x <= 0;
-					const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
-
-					if (dead_end || cant_move) {
-						renderTank(sprite, { tank_x, tank_y });
-
+							// clearScreen(tank_x, point_y, sprite_element_width, Math.abs(adjusted_value));
+						}
+	
+						// clearScreen(tank_x, tank_y, sprite_element_width + tank_speed_ref.current, sprite_element_width);
 						return {
-							tank_x: tank_x,
+							tank_x: dead_end ? 0 : tank_x - tank_speed_ref.current,
 							tank_y: tank_y + adjusted_value
 						}
-					}
-
-					// if (canNotMove(code, tank_x, tank_y)) {
-					// 	return {
-					// 		tank_x: tank_x,
-					// 		tank_y: tank_y
-					// 	}
-					// }
-
-					return {
-						tank_x: dead_end ? 0 : tank_x - 1,
-						tank_y: tank_y + adjusted_value
-					}
-				});
-				event.preventDefault();
-				break;
-			case 'Space':
-				event.preventDefault();
-				break;
-			case 'Enter':
-				event.preventDefault();
-				break;
+					});
+					event.preventDefault();
+					break;
+				case 'Space':
+					event.preventDefault();
+					break;
+				case 'Enter':
+					event.preventDefault();
+					break;
+			}
+		} else if (KEYBOARD_KEY_SPACE === code) {
+			event.preventDefault();
 		}
 	}, []);
 
@@ -440,7 +503,7 @@ export const Root = () => {
 			step_y: 0
 		}
 		const last_pushed_key = active_keys.current && Array.from(active_keys.current).pop() || '';
-		handleTankImgCoordinates(last_pushed_key);
+		handleTankDirection(last_pushed_key);
 
 		if (active_keys.current && active_keys.current.has('ArrowUp') && last_pushed_key === 'ArrowUp') {
 			setTankCoordinates(({ tank_x, tank_y }) => {
@@ -453,9 +516,21 @@ export const Root = () => {
 					}	
 				}
 
+				// if (adjusted_value) {
+					// debugHandler({
+					// 	x_begin: tank_x,
+					// 	width: Math.abs(adjusted_value),
+					// 	y_begin: tank_y,
+					// 	height: sprite_element_width
+					// });
+					// const point_x = adjusted_value < 0 ? tank_x + adjusted_value : tank_x;
+
+					// clearScreen(point_x, tank_y, Math.abs(adjusted_value), sprite_element_width);
+				// }
+				// clearScreen(tank_x, tank_y + sprite_element_width - 2, sprite_element_width, tank_speed_ref.current);
 				return {
 					tank_x: tank_x + adjusted_value,
-					tank_y: tank_y <= 0 ? 0 : tank_y - 1
+					tank_y: tank_y <= 0 ? 0 : tank_y - tank_speed_ref.current
 				}
 			});
 		}
@@ -472,8 +547,10 @@ export const Root = () => {
 						tank_y: tank_y + adjusted_value
 					}	
 				}
+
+				// clearScreen(tank_x - 1, tank_y, tank_speed_ref.current, sprite_element_width);
 				return {
-					tank_x: tank_x >= right_edge ? right_edge : tank_x + 1,
+					tank_x: tank_x >= right_edge ? right_edge : tank_x + tank_speed_ref.current,
 					tank_y: tank_y + adjusted_value
 				}
 			});
@@ -491,9 +568,10 @@ export const Root = () => {
 						tank_y: tank_y
 					}	
 				}
+				// clearScreen(tank_x, tank_y - 1, sprite_element_width, tank_speed_ref.current);
 				return {
 					tank_x: tank_x + adjusted_value,
-					tank_y: tank_y >= bottom_edge ? bottom_edge : tank_y + 1
+					tank_y: tank_y >= bottom_edge ? bottom_edge : tank_y + tank_speed_ref.current
 				}
 			});
 		}
@@ -508,8 +586,10 @@ export const Root = () => {
 						tank_y: tank_y + adjusted_value
 					}	
 				}
+
+				// clearScreen(tank_x + sprite_element_width, tank_y, tank_speed_ref.current, sprite_element_width);
 				return {
-					tank_x: tank_x <= 0 ? 0 : tank_x - 1,
+					tank_x: tank_x <= 0 ? 0 : tank_x - tank_speed_ref.current,
 					tank_y: tank_y + adjusted_value
 				}
 			});
@@ -518,12 +598,12 @@ export const Root = () => {
 		current_animation_frame.current = requestAnimationFrame(loop);
 	};
 
-	const clearScreen = () => {
+	const clearScreen = (x: number, y: number, width: number, height: number) => {
 		const canvas = canvas_ref.current;
 		const context = canvas.getContext('2d');
 
 		if (context) {
-			context.clearRect(0, 0, board_width, board_height);
+			context.clearRect(x, y, width, height);
 		}
 	};
 
@@ -533,20 +613,23 @@ export const Root = () => {
 	) => {
 		const canvas = canvas_ref.current;
 		const context = canvas.getContext('2d');
-		const { image } = sprite;
-		let { tank_x, tank_y } = tank_coordinates;
-		const { img_x, img_y } = tank_img_coordinates_ref.current;
+		const { images } = sprite;
+		const { tank_x, tank_y } = tank_coordinates;
+		const direction = tank_direction_ref.current;
 		const { step_x } = step_axis_ref.current;
+		const level = tank_level_ref.current;
+		const level_val = level > 1 ? '_s' + level : '';
+		const tank_image_name = `tank_player1_${direction}_c0_t${step_x ? 2 : 1}${level_val}`;
 
 		context.drawImage(
-				image,
-				img_x + sprite_element_width * step_x, img_y, sprite_element_width, sprite_element_width,
-				tank_x, tank_y, sprite_element_width, sprite_element_width
+				images[tank_image_name],
+				tank_x, tank_y
 			);
 	}, []);
 
 	useEffect(() => {
-		if (sprite.image.complete && sprite.image.naturalHeight !== 0) {
+		if (sprite.loaded) {
+			clearScreen(0, 0, board_width, board_height);
 			initGameboardLevels();
 			renderTank(sprite, { tank_x, tank_y });
 		}
@@ -555,8 +638,9 @@ export const Root = () => {
 	useEffect(() => {
 		sprite
 			.load()
-			.then((image) => {
+			.then((res) => {
 				initGameboardLevels();
+
 				return renderTank(sprite, tank_coordinates);
 			})
 			.catch(error => {

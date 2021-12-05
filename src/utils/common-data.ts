@@ -1,32 +1,273 @@
-export const sprite_element_width = 16;
+export const sprite_element_width = 32;
+export const FULL_STATE_VALUE = 8;
+export const KEYBOARD_KEYS_DIRECTIONS = [ 'ArrowUp', 'ArrowRight', 'ArrowDown',	'ArrowLeft' ];
+export const KEYBOARD_KEY_SPACE = 'Space';
 export const TYPES = {
 	BLANK: 'BLANK',
-	FORTRESS: 'FORTRESS',
-	BRICK: 'BRICK'
+	FORTRESS: 'base',
+	BRICK: 'wall_brick'
 };
 export const OBJECT_TYPE = {
 	BLANK: {
-		sprite_x: 336,
-		sprite_y: 0,
+		sprite_x: 10 * sprite_element_width,
+		sprite_y: 8 * sprite_element_width + sprite_element_width / 2,
 		sprite_width: sprite_element_width,
 		sprite_height: sprite_element_width,
 		type_name: TYPES.BLANK
 	},
 	FORTRESS: {
-		sprite_x: 19 * sprite_element_width,
-		sprite_y: 2 * sprite_element_width,
+		sprite_x: 11 * sprite_element_width,
+		sprite_y: 7 * sprite_element_width + sprite_element_width / 2,
 		sprite_width: sprite_element_width,
 		sprite_height: sprite_element_width,
 		type_name: TYPES.FORTRESS
 	},
 	BRICK: {
-		sprite_x: sprite_element_width * sprite_element_width,
-		sprite_y: 0,
+		sprite_x: 8 * sprite_element_width,
+		sprite_y: 5 * sprite_element_width + sprite_element_width / 2,
 		sprite_width: sprite_element_width,
 		sprite_height: sprite_element_width,
 		type_name: TYPES.BRICK
 	}
 };
+
+interface destroyedElement {
+	sprite_x: number,
+	sprite_y: number,
+	sprite_width: number,
+	sprite_height: number,
+	begin_x: number,
+	begin_y: number
+}
+
+interface damageData {
+	title: string,
+	coords: (number | undefined)[]
+}
+
+class GridElement {
+	element_pos_x: number;
+	element_pos_y: number;
+	sprite_width: number;
+	sprite_height: number;
+	damages: (string | undefined)[];
+	state: number;
+	_damage_coordinates: Array<number[]>
+	type_name: string
+
+	constructor(
+		element_pos_x: number,
+		element_pos_y: number,
+		sprite_width: number,
+		sprite_height: number,
+		damage: string,
+		type_name: string
+	) {
+		this.element_pos_x = element_pos_x;
+		this.element_pos_y = element_pos_y;
+		this.sprite_width = sprite_width;
+		this.sprite_height = sprite_height;
+		this.damages = [];
+		this.state = FULL_STATE_VALUE;
+		this._damage_coordinates = [];
+		this.type_name = type_name;
+	}
+
+	get damage_coordinates() {
+		return this._damage_coordinates; 
+	}
+
+	getDamageCoordinates() {
+		return this._damage_coordinates;
+	}
+
+	setDamageLevel(damage: string) {
+		if (!this.damages.includes(damage)) {
+			this.damages = [ ...this.damages, damage ];
+			switch (damage) {
+				case DAMAGE_LEVEL.LEFT1X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[0, 0],
+						[this.sprite_width / 4, 0],
+						[this.sprite_width / 4, this.sprite_height],
+						[0, this.sprite_height]
+					];
+					break;
+				case DAMAGE_LEVEL.LEFT2X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[0, 0],
+						[this.sprite_width / 2, 0],
+						[this.sprite_width / 2, this.sprite_height],
+						[0, this.sprite_height]
+					];
+					break;
+				case DAMAGE_LEVEL.LEFT3X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[0, 0],
+						[this.sprite_width / 1.3, 0],
+						[this.sprite_width / 1.3, this.sprite_height],
+						[0, this.sprite_height]
+					];
+					break;
+				case DAMAGE_LEVEL.RIGHT1X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[this.sprite_width, 0],
+						[this.sprite_width / 4, 0],
+						[this.sprite_width / 4, this.sprite_height],
+						[this.sprite_width, this.sprite_height]
+					];
+					break;
+				case DAMAGE_LEVEL.RIGHT2X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[this.sprite_width, 0],
+						[this.sprite_width / 2, 0],
+						[this.sprite_width / 2, this.sprite_height],
+						[this.sprite_width, this.sprite_height]
+					];
+					break;
+				case DAMAGE_LEVEL.RIGHT3X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[this.sprite_width, 0],
+						[this.sprite_width / 1.3, 0],
+						[this.sprite_width / 1.3, this.sprite_height],
+						[this.sprite_width, this.sprite_height]
+					];
+					break;
+				case DAMAGE_LEVEL.TOP1X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[0, 0],
+						[this.sprite_width, 0],
+						[this.sprite_width, this.sprite_height / 4],
+						[0, this.sprite_height / 4]
+					];
+					break;
+				case DAMAGE_LEVEL.TOP2X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[this.element_pos_x, this.element_pos_y],
+						[this.element_pos_x + this.sprite_width, this.element_pos_y],
+						[this.element_pos_x + this.sprite_width, this.element_pos_y + this.sprite_height / 2],
+						[this.element_pos_x, this.element_pos_y + this.sprite_height / 2]
+					];
+					break;
+				case DAMAGE_LEVEL.TOP3X:
+					this.state -= 2;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[this.element_pos_x, this.element_pos_y],
+						[this.element_pos_x + this.sprite_width, this.element_pos_y],
+						[this.element_pos_x + this.sprite_width, this.element_pos_y + this.sprite_height /  1.3],
+						[this.element_pos_x, this.element_pos_y + this.sprite_height /  1.3]
+					];
+					break;
+				case DAMAGE_LEVEL.BOTTOM1X:
+					this.state -= 2;
+
+					break;
+				case DAMAGE_LEVEL.BOTTOM2X:
+					this.state -= 2;
+					break;
+				case DAMAGE_LEVEL.BOTTOM3X:
+					this.state -= 2;
+					break;
+				case DAMAGE_LEVEL.TOP_LEFT1X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.TOP_LEFT2X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.TOP_LEFT3X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.TOP_RIGHT1X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.TOP_RIGHT2X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.TOP_RIGHT3X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.BOTTOM_LEFT1X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.BOTTOM_LEFT2X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.BOTTOM_LEFT3X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.BOTTOM_RIGHT1X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.BOTTOM_RIGHT2X:
+					this.state -= 1;
+					this._damage_coordinates= [
+						...this._damage_coordinates,
+						[this.element_pos_x + this.sprite_width, this.element_pos_y + this.sprite_height / 2],
+						[this.element_pos_x + this.sprite_width, this.element_pos_y + this.sprite_height],
+						[this.element_pos_x + this.sprite_width / 2, this.element_pos_y + this.sprite_height],
+						[this.element_pos_x + this.sprite_width / 2, this.element_pos_y + this.sprite_height / 2]
+					];
+					break;
+				case DAMAGE_LEVEL.BOTTOM_RIGHT3X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.LEFT_TOP1X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.LEFT_TOP2X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.LEFT_TOP3X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.LEFT_BOTTOM1X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.LEFT_BOTTOM2X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.LEFT_BOTTOM3X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.RIGHT_TOP1X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.RIGHT_TOP2X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.RIGHT_TOP3X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.RIGHT_BOTTOM1X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.RIGHT_BOTTOM2X:
+					this.state -= 1;
+					break;
+				case DAMAGE_LEVEL.RIGHT_BOTTOM3X:
+					this.state -= 1;
+					break;
+			}
+		}
+	}
+}
 
 export const SPRITES_ELEMENTS = [
 	OBJECT_TYPE.BLANK,
@@ -40,7 +281,7 @@ export const board_height = sprite_element_width * 13;
 export const GRID_SIZE = 20;
 export const CELL_SIZE = 20;
 
-const DAMAGE_LEVEL = {
+export const DAMAGE_LEVEL = {
 	INTACT: 'INTACT',
 	TOP1X: 'TOP1X',
 	TOP2X: 'TOP2X',
@@ -81,570 +322,1640 @@ const DAMAGE_LEVEL = {
 }
 
 export const GRID_ELEMENTS_LEVEL1 = [
-	[ 
-		{
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}
-	],
-	[ 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}
-	], 
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}
-	], 
-	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	],
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	],
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}, 
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	],
 	[
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		}, 
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		}, 
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		}, 
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		}
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	],
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	],
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	],
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BRICK
 	],
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	],
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.BRICK,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	],
 	[
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{ 
-			type: OBJECT_TYPE.FORTRESS,
-			damage: DAMAGE_LEVEL.INTACT
-		},
-		{ 
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		},
-		{
-			type: OBJECT_TYPE.BLANK
-		}
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
+	],
+	[
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
+	],
+	[
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
+	],
+	[
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BRICK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
+	],
+	[
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.FORTRESS,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK,
+		TYPES.BLANK
 	]
-]
+].map((row, row_index) => {
+	return row.map((cell, cell_index) => {
+		const element_pos_x = cell_index * sprite_element_width;
+		const element_pos_y = row_index * sprite_element_width;
+		switch (cell) {
+			case TYPES.BLANK:
+				return new GridElement(
+					element_pos_x,
+					element_pos_y,
+					sprite_element_width,
+					sprite_element_width,
+					DAMAGE_LEVEL.INTACT,
+					TYPES.BLANK
+				);
+		
+			case TYPES.BRICK:
+				return new GridElement(
+					element_pos_x,
+					element_pos_y,
+					sprite_element_width,
+					sprite_element_width,
+					DAMAGE_LEVEL.INTACT,
+					TYPES.BRICK
+				);
+
+			case TYPES.FORTRESS:
+				return new GridElement(
+					element_pos_x,
+					element_pos_y,
+					sprite_element_width,
+					sprite_element_width,
+					DAMAGE_LEVEL.INTACT,
+					TYPES.FORTRESS
+				);
+
+			default: return new GridElement(
+				element_pos_x,
+				element_pos_y,
+				sprite_element_width,
+				sprite_element_width,
+				DAMAGE_LEVEL.INTACT,
+				TYPES.BLANK
+			);
+		}
+	});
+});
+
+// export const GRID_ELEMENTS_LEVEL1 = [
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[ 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	], 
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	], 
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		), 
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BRICK.sprite_x,
+// 			OBJECT_TYPE.BRICK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BRICK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	],
+// 	[
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.FORTRESS.sprite_x,
+// 			OBJECT_TYPE.FORTRESS.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.FORTRESS,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		),
+// 		new GridElement(
+// 			OBJECT_TYPE.BLANK.sprite_x,
+// 			OBJECT_TYPE.BLANK.sprite_y,
+// 			sprite_element_width,
+// 			sprite_element_width,
+// 			TYPES.BLANK,
+// 			DAMAGE_LEVEL.INTACT
+// 		)
+// 	]
+// ]
