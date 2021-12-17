@@ -8,6 +8,7 @@ import {
 	TYPES,
 	DAMAGE_LEVEL,
 	KEYBOARD_KEYS_DIRECTIONS,
+	DIRECTIONS,
 	KEYBOARD_KEY_SPACE,
 	FULL_STATE_VALUE
 	// SPRITES_ELEMENTS
@@ -37,8 +38,13 @@ interface imgCoordinates {
 	img_y: number
 }
 
+interface tankCoordinates {
+	tank_x: number,
+	tank_y: number
+}
+
 interface tankDirectionRef {
-	current: string | null
+	current: string
 }
 
 interface stepAxis {
@@ -58,6 +64,32 @@ interface tankLevelRef {
 	current: number
 }
 
+interface mainBulletSpeedRef {
+	current: number
+}
+
+interface mainBulletIdRef {
+	current: string
+}
+
+interface bulletCoordinates {
+	bullet_x: number,
+	bullet_y: number
+}
+
+interface bullet extends bulletCoordinates {
+	id: string,
+	direction: string,
+	speed: number,
+	collided: boolean
+}
+
+interface bulletRef {
+	current: bullet[]
+}
+
+const bullet = (direction: string) => `bullet_${direction}`;
+
 const sprite = new Sprite();
 
 export const Root = () => {
@@ -66,12 +98,14 @@ export const Root = () => {
 	const active_keys: activeKeys = useRef(null);
 	const current_animation_frame: any = useRef(null);
 	const canvas_ref: any = useRef(null);
-	const tank_direction_ref: tankDirectionRef = useRef(null);
+	const tank_direction_ref: tankDirectionRef = useRef(DIRECTIONS.UP);
 	const step_axis_ref: stepAxisRef = useRef({ step_x: 0, step_y: 0 });
 	const is_debug_ref: debug = useRef(false);
 	const tank_speed_ref: tankSpeedRef = useRef(2);
 	const tank_level_ref: tankLevelRef = useRef(1);
-	// const flattened_grid_ref: any = useRef(null);
+	const main_bullet_speed_ref: mainBulletSpeedRef = useRef(4);
+	const bullets_collection: bulletRef = useRef([]);
+	const main_bullet_id_ref: mainBulletIdRef = useRef(new Date().toISOString());
 	
 	const initGameboardLevels = useCallback(() => {
 		const canvas = canvas_ref.current;
@@ -102,20 +136,12 @@ export const Root = () => {
 
 				if (cell.state < FULL_STATE_VALUE) {
 					context.beginPath();
-					// context.moveTo(element_pos_x, element_pos_y);
 					cell.damage_coordinates.forEach((val, index, coords) => {
 						if (index % 4 === 0) {
 							context.moveTo(...val);
 						}
 
-						
 						context.lineTo(...val);
-						// if (!(index % 2) && index) {
-						// 	const coord_x = coords[index - 1] || 0;
-						// 	const coord_y = coords[index] || 0;
-						// 	console.log(coord_x, coord_y);
-						// 	context.lineTo(cell_x + coord_x, element_pos_y + coord_y);
-						// }
 
 						if (coords.length === index + 1) {
 							// context.fillStyle = 'blue';
@@ -204,7 +230,13 @@ export const Root = () => {
 					case 'ArrowUp':
 						if (
 							is_tank_on_the_same_axis_level_with_object(type_name, tank_y, element_y_end) &&
-							is_tank_opposite_to_object_at_y_axis(tank_x, tank_x_end, element_x_begin, element_x_end, sprite_element_width)
+							is_tank_opposite_to_object_at_y_axis(
+								tank_x,
+								tank_x_end,
+								element_x_begin,
+								element_x_end,
+								sprite_element_width
+							)
 						) {
 							if (is_debug_ref.current) {
 								debugHandler({
@@ -240,7 +272,13 @@ export const Root = () => {
 					case 'ArrowDown':
 						if (
 							is_tank_on_the_same_axis_level_with_object(type_name, tank_y_end, element_y_begin) &&
-							is_tank_opposite_to_object_at_y_axis(tank_x, tank_x_end, element_x_begin, element_x_end, sprite_element_width)
+							is_tank_opposite_to_object_at_y_axis(
+								tank_x,
+								tank_x_end,
+								element_x_begin,
+								element_x_end,
+								sprite_element_width
+							)
 						) {
 							if (is_debug_ref.current) {
 								debugHandler({
@@ -250,10 +288,24 @@ export const Root = () => {
 									height: sprite_height
 								});
 							}
-							adjusted_value = handle_tank_axis_adjustment(tank_x, tank_x_end, element_x_begin, element_x_end, sprite_element_width);
+							adjusted_value = handle_tank_axis_adjustment(
+								tank_x,
+								tank_x_end,
+								element_x_begin,
+								element_x_end,
+								sprite_element_width
+							);
 
 							return true;
-						} else if (is_tank_opposite_to_object_at_y_axis(tank_x, tank_x_end, element_x_begin, element_x_end, sprite_element_width)) {
+						} else if (
+							is_tank_opposite_to_object_at_y_axis(
+								tank_x,
+								tank_x_end,
+								element_x_begin,
+								element_x_end,
+								sprite_element_width
+							)
+						) {
 							adjusted_value = adjusted_value || handle_tank_axis_adjustment(tank_x, tank_x_end, element_x_begin, element_x_end, sprite_element_width);
 
 							return false;
@@ -315,20 +367,20 @@ export const Root = () => {
 	const handleTankDirection = (key: string) => {
 		switch (key) {
 			case 'ArrowUp':
-				tank_direction_ref.current = 'up';
+				tank_direction_ref.current = DIRECTIONS.UP;
 				break;
 			case 'ArrowRight':
-				tank_direction_ref.current = 'right';
+				tank_direction_ref.current = DIRECTIONS.RIGHT;
 				break;
 			case 'ArrowDown':
-				tank_direction_ref.current = 'down';
+				tank_direction_ref.current = DIRECTIONS.DOWN;
 				break;
 			case 'ArrowLeft':
-				tank_direction_ref.current = 'left';
+				tank_direction_ref.current = DIRECTIONS.LEFT;
 				break;
 		
 			default:
-				tank_direction_ref.current = 'up';
+				tank_direction_ref.current = tank_direction_ref.current;
 				break;
 		}
 	}
@@ -344,138 +396,152 @@ export const Root = () => {
 				active_keys.current.add(code);
 			}
 			handleTankDirection(code);
-			switch (code) {
-				case 'ArrowUp':
-					setTankCoordinates(({ tank_x, tank_y }) => {
-						const dead_end = tank_y <= 0;
-						const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
-
-						clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
-	
-						if (dead_end || cant_move) {
-							renderTank(sprite, { tank_x, tank_y });
-							return {
-								tank_x: tank_x + adjusted_value,
-								tank_y: tank_y
-							}	
-						}
-
-						if (adjusted_value) {
-							const point_x = adjusted_value < 0 ? (tank_x + sprite_element_width + adjusted_value) : tank_x;
-
-							// clearScreen(point_x, tank_y, Math.abs(adjusted_value), sprite_element_width);
-						}
-						
-						// clearScreen(tank_x, tank_y + sprite_element_width - 2, sprite_element_width, tank_speed_ref.current);
-						return {
-							tank_x: tank_x + adjusted_value,
-							tank_y: dead_end ? 0 : tank_y - tank_speed_ref.current
-						}
-					});
-					event.preventDefault();
-					break;
-				case 'ArrowRight':
-					setTankCoordinates(({ tank_x, tank_y }) => {
-						const right_edge = board_width - sprite_element_width;
-						const dead_end = tank_x >= right_edge;
-						const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
-
-						clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
-	
-						if (dead_end || cant_move) {
-							renderTank(sprite, { tank_x, tank_y });
-	
-							return {
-								tank_x: tank_x,
-								tank_y: tank_y + adjusted_value
-							}
-						}
-
-						if (adjusted_value) {
-							const point_y = adjusted_value < 0 ? (tank_y + sprite_element_width + adjusted_value) : tank_y;
-
-							// clearScreen(tank_x, point_y, sprite_element_width, Math.abs(adjusted_value));
-						}
-	
-						// clearScreen(tank_x - 1, tank_y, tank_speed_ref.current, sprite_element_width);
-						return {
-							tank_x: dead_end ? right_edge : tank_x + tank_speed_ref.current,
-							tank_y: tank_y + adjusted_value
-						}
-					});
-					event.preventDefault();
-					break;
-				case 'ArrowDown':
-					setTankCoordinates(({ tank_x, tank_y }) => {
-						const right_edge = board_width - sprite_element_width;
-						const dead_end = tank_y >= right_edge;
-						const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
-
-						clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
-	
-						if (dead_end || cant_move) {
-							renderTank(sprite, { tank_x, tank_y });
-	
-							return {
-								tank_x: tank_x + adjusted_value,
-								tank_y: tank_y
-							}
-						}
-
-						if (adjusted_value) {
-							const point_x = adjusted_value < 0 ? (tank_x + sprite_element_width + adjusted_value) : tank_x;
-
-							// clearScreen(point_x, tank_y, Math.abs(adjusted_value), sprite_element_width);
-						}
-	
-						// clearScreen(tank_x, tank_y - 1, sprite_element_width, tank_speed_ref.current);
-						return {
-							tank_x: tank_x + adjusted_value,
-							tank_y: dead_end ? right_edge : tank_y + tank_speed_ref.current
-						};
-					});
-					event.preventDefault();
-					break;
-				case 'ArrowLeft':
-					setTankCoordinates(({ tank_x, tank_y }) => {
-						const dead_end = tank_x <= 0;
-						const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
-
-						clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
-	
-						if (dead_end || cant_move) {
-							renderTank(sprite, { tank_x, tank_y });
-	
-							return {
-								tank_x: tank_x,
-								tank_y: tank_y + adjusted_value
-							}
-						}
-
-						if (adjusted_value) {
-							const point_y = adjusted_value < 0 ? (tank_y + sprite_element_width + adjusted_value) : tank_y;
-
-							// clearScreen(tank_x, point_y, sprite_element_width, Math.abs(adjusted_value));
-						}
-	
-						// clearScreen(tank_x, tank_y, sprite_element_width + tank_speed_ref.current, sprite_element_width);
-						return {
-							tank_x: dead_end ? 0 : tank_x - tank_speed_ref.current,
-							tank_y: tank_y + adjusted_value
-						}
-					});
-					event.preventDefault();
-					break;
-				case 'Space':
-					event.preventDefault();
-					break;
-				case 'Enter':
-					event.preventDefault();
-					break;
-			}
-		} else if (KEYBOARD_KEY_SPACE === code) {
-			event.preventDefault();
 		}
+		switch (code) {
+			case 'ArrowUp':
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const dead_end = tank_y <= 0;
+					const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
+
+					clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
+
+					if (dead_end || cant_move) {
+						renderTank(sprite, { tank_x, tank_y });
+						return {
+							tank_x: tank_x + adjusted_value,
+							tank_y: tank_y
+						}	
+					}
+
+					if (adjusted_value) {
+						const point_x = adjusted_value < 0 ? (tank_x + sprite_element_width + adjusted_value) : tank_x;
+
+						// clearScreen(point_x, tank_y, Math.abs(adjusted_value), sprite_element_width);
+					}
+					
+					// clearScreen(tank_x, tank_y + sprite_element_width - 2, sprite_element_width, tank_speed_ref.current);
+					return {
+						tank_x: tank_x + adjusted_value,
+						tank_y: dead_end ? 0 : tank_y - tank_speed_ref.current
+					}
+				});
+				event.preventDefault();
+				break;
+			case 'ArrowRight':
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const right_edge = board_width - sprite_element_width;
+					const dead_end = tank_x >= right_edge;
+					const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
+
+					clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
+
+					if (dead_end || cant_move) {
+						renderTank(sprite, { tank_x, tank_y });
+
+						return {
+							tank_x: tank_x,
+							tank_y: tank_y + adjusted_value
+						}
+					}
+
+					if (adjusted_value) {
+						const point_y = adjusted_value < 0 ? (tank_y + sprite_element_width + adjusted_value) : tank_y;
+
+						// clearScreen(tank_x, point_y, sprite_element_width, Math.abs(adjusted_value));
+					}
+
+					// clearScreen(tank_x - 1, tank_y, tank_speed_ref.current, sprite_element_width);
+					return {
+						tank_x: dead_end ? right_edge : tank_x + tank_speed_ref.current,
+						tank_y: tank_y + adjusted_value
+					}
+				});
+				event.preventDefault();
+				break;
+			case 'ArrowDown':
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const right_edge = board_width - sprite_element_width;
+					const dead_end = tank_y >= right_edge;
+					const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
+
+					clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
+
+					if (dead_end || cant_move) {
+						renderTank(sprite, { tank_x, tank_y });
+
+						return {
+							tank_x: tank_x + adjusted_value,
+							tank_y: tank_y
+						}
+					}
+
+					if (adjusted_value) {
+						const point_x = adjusted_value < 0 ? (tank_x + sprite_element_width + adjusted_value) : tank_x;
+
+						// clearScreen(point_x, tank_y, Math.abs(adjusted_value), sprite_element_width);
+					}
+
+					// clearScreen(tank_x, tank_y - 1, sprite_element_width, tank_speed_ref.current);
+					return {
+						tank_x: tank_x + adjusted_value,
+						tank_y: dead_end ? right_edge : tank_y + tank_speed_ref.current
+					};
+				});
+				event.preventDefault();
+				break;
+			case 'ArrowLeft':
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const dead_end = tank_x <= 0;
+					const { cant_move, adjusted_value } = canNotMove(code, tank_x, tank_y);
+
+					clearScreen(tank_x, tank_y, sprite_element_width, sprite_element_width);
+
+					if (dead_end || cant_move) {
+						renderTank(sprite, { tank_x, tank_y });
+
+						return {
+							tank_x: tank_x,
+							tank_y: tank_y + adjusted_value
+						}
+					}
+
+					if (adjusted_value) {
+						const point_y = adjusted_value < 0 ? (tank_y + sprite_element_width + adjusted_value) : tank_y;
+
+						// clearScreen(tank_x, point_y, sprite_element_width, Math.abs(adjusted_value));
+					}
+
+					// clearScreen(tank_x, tank_y, sprite_element_width + tank_speed_ref.current, sprite_element_width);
+					return {
+						tank_x: dead_end ? 0 : tank_x - tank_speed_ref.current,
+						tank_y: tank_y + adjusted_value
+					}
+				});
+				event.preventDefault();
+				break;
+			case 'Space':
+				setTankCoordinates(({ tank_x, tank_y }) => {
+					const bullet_data = {
+						id: main_bullet_id_ref.current,
+						bullet_y: 0,
+						bullet_x: 0,
+						speed: main_bullet_speed_ref.current,
+						direction: tank_direction_ref.current,
+						collided: false
+					}
+					fireBullet({ tank_x, tank_y }, bullet_data);
+
+					return { tank_x, tank_y };
+				});
+				event.preventDefault();
+				break;
+			case 'Enter':
+				event.preventDefault();
+				break;
+		}
+		// else if (KEYBOARD_KEY_SPACE === code) {
+		// 	event.preventDefault();
+		// }
 	}, []);
 
 	const handleKeyUpPress = useCallback(event => {
@@ -497,6 +563,213 @@ export const Root = () => {
 		}
 	}, []);
 
+	const fireBullet = (tank_coordinates: tankCoordinates, bullet_data: bullet) => {
+		const tank_direction = tank_direction_ref.current;
+		let new_bullet = bullet_data;
+		const already_exist = bullets_collection.current.find(({ id }) => id === new_bullet.id);
+
+		if (already_exist) {
+			return;
+		}
+
+		switch (tank_direction) {
+			case DIRECTIONS.UP:
+				new_bullet = {
+					...new_bullet,
+					direction: tank_direction,
+					bullet_y: tank_coordinates.tank_y - 4,
+					bullet_x: tank_coordinates.tank_x + sprite_element_width / 2 - 4
+				}
+				break;
+			case DIRECTIONS.DOWN:
+				new_bullet = {
+					...new_bullet,
+					direction: tank_direction,
+					bullet_y: tank_coordinates.tank_y + sprite_element_width + 4,
+					bullet_x: tank_coordinates.tank_x + sprite_element_width / 2 - 4
+				}
+				break;
+			case DIRECTIONS.LEFT:
+				new_bullet = {
+					...new_bullet,
+					direction: tank_direction,
+					bullet_y: tank_coordinates.tank_y + sprite_element_width / 2 - 4,
+					bullet_x: tank_coordinates.tank_x - 4
+				}
+				break;
+			case DIRECTIONS.RIGHT:
+				new_bullet = {
+					...new_bullet,
+					direction: tank_direction,
+					bullet_y: tank_coordinates.tank_y + sprite_element_width / 2 - 4,
+					bullet_x: tank_coordinates.tank_x + sprite_element_width
+				}
+				break;
+			default: return false;
+		}
+
+		bullets_collection.current = [ ...bullets_collection.current, new_bullet ];
+	};
+
+	const deleteOutOfBoardBullets = (bullets: bullet[]) => {
+		return bullets.filter(({
+			bullet_x,
+			bullet_y,
+		}) => !(bullet_x >= board_width || bullet_y >= board_height || bullet_x <= 0 || bullet_y <= 0));
+	}
+	const updateBulletsPositions = (bullets: bullet[]) => {
+		return bullets.map(bullet => {
+			switch (bullet.direction) {
+				case DIRECTIONS.UP:
+					return { ...bullet, bullet_y: bullet.bullet_y - bullet.speed }
+				case DIRECTIONS.RIGHT:
+					return { ...bullet, bullet_x: bullet.bullet_x + bullet.speed }
+				case DIRECTIONS.DOWN:
+					return { ...bullet, bullet_y: bullet.bullet_y + bullet.speed }
+				case DIRECTIONS.LEFT:
+					return { ...bullet, bullet_x: bullet.bullet_x - bullet.speed }
+				default: return bullet;
+			}
+		});
+	}
+
+	const renderBullet = (bullets: bullet[]) => {
+		const canvas = canvas_ref.current;
+		const context = canvas.getContext('2d');
+		const { images } = sprite;
+
+		bullets.forEach(({ bullet_x, bullet_y, direction }) => {
+			const bullet_image_name = `bullet_${direction}`;
+
+			context.drawImage(
+				images[bullet_image_name],
+				bullet_x, bullet_y
+			);
+		});
+	};
+
+	const clearOldBulletsPositions = (bullets: bullet[]) => {
+		bullets.forEach(({
+			bullet_x,
+			bullet_y
+		}) => {
+			clearScreen(bullet_x, bullet_y, 8, 8);
+		});
+	};
+
+	const isBulletReachElementToLeftSide = (
+		bullet_x: number,
+		element_pos_x: number,
+		element_width: number
+	) => {
+		return bullet_x >= element_pos_x && bullet_x <= element_pos_x + element_width / 3;
+	};
+
+	const isBulletReachElementToCenterSide = (
+		bullet_x: number,
+		element_pos_x: number,
+		element_width: number
+	) => {
+		return bullet_x >= element_pos_x + element_width / 3 && bullet_x <= element_pos_x + element_width / 1.5;
+	};
+
+	const isBulletReachElementToRightSide = (
+		bullet_x: number,
+		element_pos_x: number,
+		element_width: number
+	) => {
+		return bullet_x >= element_pos_x + element_width / 1.5 && bullet_x <= element_pos_x + element_width;
+	};
+
+	const bulletReachElementFromBottomHandler = (
+		id: string,
+		bullet_x: number,
+		bullet_y: number,
+		element_pos_x: number,
+		element_pos_y: number,
+		element_width: number,
+		element_height: number,
+		damage_coordinates: number[][]
+	) => {
+		if (bullet_y === (element_pos_y + element_height)) {
+			if (isBulletReachElementToLeftSide(bullet_x, element_pos_x, element_width)) {
+
+			} else if (isBulletReachElementToCenterSide(bullet_x, element_pos_x, element_width)) {
+
+			} else if (isBulletReachElementToRightSide(bullet_x, element_pos_x, element_width)) {
+				bulletVerticalCollisionHandler(id, bullet_x, bullet_y, damage_coordinates);
+			}
+		}
+	};
+
+	const bulletVerticalCollisionHandler = (
+		id: string,
+		bullet_x: number,
+		bullet_y: number,
+		damage_coordinates: number[][]
+	) => {
+		const did_not_collide = damage_coordinates.find(([obj_x_pos, obj_y_pos]) => obj_y_pos === bullet_y && bullet_x >= obj_x_pos);
+
+		if (!did_not_collide) {
+			bullets_collection.current = bullets_collection.current.map(bullet => ({
+				...bullet,
+				collided: id === bullet.id
+			}));
+		}
+	};
+
+	const getBulletCollisionCoordinates = (bullets: bullet[]) => {
+		GRID_ELEMENTS_LEVEL1.forEach((row, row_index) => {
+			return row.forEach((cell, cell_index) => {
+				const {
+					element_pos_x,
+					element_pos_y,
+					sprite_width,
+					sprite_height,
+					type_name
+				} = cell;
+
+				if (type_name === TYPES.BRICK) {
+					const damage_coordinates = cell.getDamageCoordinates();
+
+					bullets.forEach(({
+						id,
+						bullet_x,
+						bullet_y,
+						direction
+					}) => {
+						switch (direction) {
+							case DIRECTIONS.UP:
+								bulletReachElementFromBottomHandler(
+									id,
+									bullet_x,
+									bullet_y,
+									element_pos_x,
+									element_pos_y,
+									sprite_width,
+									sprite_height,
+									damage_coordinates
+								);
+								break;
+						
+							default:
+								break;
+						}
+					});
+				}
+			});
+		});
+	};
+
+	const bulletsHandler = () => {
+		if (bullets_collection.current && bullets_collection.current.length) {
+			bullets_collection.current = deleteOutOfBoardBullets(bullets_collection.current);
+			clearOldBulletsPositions(bullets_collection.current);
+			bullets_collection.current = updateBulletsPositions(bullets_collection.current);
+			renderBullet(bullets_collection.current);
+		}
+	};
+
 	const loop = () => {
 		step_axis_ref.current = {
 			step_x: step_axis_ref.current.step_x ^ 1,
@@ -504,6 +777,7 @@ export const Root = () => {
 		}
 		const last_pushed_key = active_keys.current && Array.from(active_keys.current).pop() || '';
 		handleTankDirection(last_pushed_key);
+		bulletsHandler();
 
 		if (active_keys.current && active_keys.current.has('ArrowUp') && last_pushed_key === 'ArrowUp') {
 			setTankCoordinates(({ tank_x, tank_y }) => {
@@ -516,18 +790,6 @@ export const Root = () => {
 					}	
 				}
 
-				// if (adjusted_value) {
-					// debugHandler({
-					// 	x_begin: tank_x,
-					// 	width: Math.abs(adjusted_value),
-					// 	y_begin: tank_y,
-					// 	height: sprite_element_width
-					// });
-					// const point_x = adjusted_value < 0 ? tank_x + adjusted_value : tank_x;
-
-					// clearScreen(point_x, tank_y, Math.abs(adjusted_value), sprite_element_width);
-				// }
-				// clearScreen(tank_x, tank_y + sprite_element_width - 2, sprite_element_width, tank_speed_ref.current);
 				return {
 					tank_x: tank_x + adjusted_value,
 					tank_y: tank_y <= 0 ? 0 : tank_y - tank_speed_ref.current
@@ -607,9 +869,9 @@ export const Root = () => {
 		}
 	};
 
-	const renderTank = useCallback((
-		sprite,
-		tank_coordinates
+	const renderTank = (
+		sprite: Sprite,
+		tank_coordinates: tankCoordinates
 	) => {
 		const canvas = canvas_ref.current;
 		const context = canvas.getContext('2d');
@@ -622,10 +884,10 @@ export const Root = () => {
 		const tank_image_name = `tank_player1_${direction}_c0_t${step_x ? 2 : 1}${level_val}`;
 
 		context.drawImage(
-				images[tank_image_name],
-				tank_x, tank_y
-			);
-	}, []);
+			images[tank_image_name],
+			tank_x, tank_y
+		);
+	};
 
 	useEffect(() => {
 		if (sprite.loaded) {
