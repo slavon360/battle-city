@@ -10,7 +10,8 @@ import {
 	KEYBOARD_KEYS_DIRECTIONS,
 	DIRECTIONS,
 	KEYBOARD_KEY_SPACE,
-	FULL_STATE_VALUE
+	FULL_STATE_VALUE,
+	BULLETS_WIDTH
 	// SPRITES_ELEMENTS
 } from '../../utils/common-data';
 // import canvasContext from '../../context/canvas-context';
@@ -88,6 +89,12 @@ interface bulletRef {
 	current: bullet[]
 }
 
+interface gridElementMethods {
+	getDamageName: Function,
+	setDamageLevel: Function,
+	getDamageCoordinates: Function
+}
+
 const bullet = (direction: string) => `bullet_${direction}`;
 
 const sprite = new Sprite();
@@ -103,7 +110,7 @@ export const Root = () => {
 	const is_debug_ref: debug = useRef(false);
 	const tank_speed_ref: tankSpeedRef = useRef(2);
 	const tank_level_ref: tankLevelRef = useRef(1);
-	const main_bullet_speed_ref: mainBulletSpeedRef = useRef(4);
+	const main_bullet_speed_ref: mainBulletSpeedRef = useRef(2);
 	const bullets_collection: bulletRef = useRef([]);
 	const main_bullet_id_ref: mainBulletIdRef = useRef(new Date().toISOString());
 	
@@ -122,10 +129,10 @@ export const Root = () => {
 					type_name
 				} = cell;
 
-				if (row_index === 0 && cell_index === 6) {
-					cell.setDamageLevel(DAMAGE_LEVEL.TOP3X);
-					cell.setDamageLevel(DAMAGE_LEVEL.BOTTOM_RIGHT2X);
-				}
+				// if (row_index === 0 && cell_index === 6) {
+				// 	cell.setDamageLevel(DAMAGE_LEVEL.TOP3X);
+				// 	cell.setDamageLevel(DAMAGE_LEVEL.BOTTOM_RIGHT2X);
+				// }
 
 				if (type_name !== TYPES.BLANK) {
 					context.drawImage(
@@ -681,6 +688,24 @@ export const Root = () => {
 		return bullet_x >= element_pos_x + element_width / 1.5 && bullet_x <= element_pos_x + element_width;
 	};
 
+	const isBulletReachElementOnYAxisFromBottom = (
+		bullet_y: number,
+		element_pos_y: number,
+		element_height: number
+	) => {
+		// console.log('bullet_y: ', bullet_y, 'element_pos_y: ', element_pos_y, element_pos_y + element_height);
+		return bullet_y > element_pos_y && bullet_y <= element_pos_y + element_height;
+	};
+
+	const isBulletReachElementOnXAxis = (
+		bullet_x: number,
+		element_pos_x: number,
+		element_width: number
+	) => {
+		// console.log('bullet_x: ', bullet_x,'element_pos_x: ', element_pos_x);
+		return (bullet_x + BULLETS_WIDTH) >= element_pos_x && bullet_x <= (element_pos_x + element_width);
+	};
+
 	const bulletReachElementFromBottomHandler = (
 		id: string,
 		bullet_x: number,
@@ -689,20 +714,49 @@ export const Root = () => {
 		element_pos_y: number,
 		element_width: number,
 		element_height: number,
-		damage_coordinates: number[][]
+		damage_coordinates: number[][],
+		cell: gridElementMethods
 	) => {
-		if (bullet_y === (element_pos_y + element_height)) {
-			if (isBulletReachElementToLeftSide(bullet_x, element_pos_x, element_width)) {
+		if (
+			isBulletReachElementOnYAxisFromBottom(bullet_y, element_pos_y, element_height) &&
+			isBulletReachElementOnXAxis(bullet_x, element_pos_x, element_width)
+		) {
+			// if (isBulletReachElementToLeftSide(bullet_x, element_pos_x, element_width)) {
 
-			} else if (isBulletReachElementToCenterSide(bullet_x, element_pos_x, element_width)) {
+			// } else if (isBulletReachElementToCenterSide(bullet_x, element_pos_x, element_width)) {
 
-			} else if (isBulletReachElementToRightSide(bullet_x, element_pos_x, element_width)) {
-				bulletVerticalCollisionHandler(id, bullet_x, bullet_y, damage_coordinates);
-			}
+			// } else if (isBulletReachElementToRightSide(bullet_x, element_pos_x, element_width)) {
+				const collided = isBulletCollidedVertically(id, bullet_x, bullet_y, damage_coordinates);
+
+				if (collided) {
+					const canvas = canvas_ref.current;
+					const context = canvas.getContext('2d');
+					const { images } = sprite;
+					const damage_name = cell.getDamageName([bullet_x, bullet_y]);
+					const damage_state = cell.setDamageLevel(damage_name);
+					const damage_coordinates = cell.getDamageCoordinates();
+					
+					if (damage_state < FULL_STATE_VALUE) {
+						context.beginPath();
+						damage_coordinates.forEach((val: number[], index: number, coords: Array<number>) => {
+							if (index % 4 === 0) {
+								context.moveTo(...val);
+							}
+	
+							context.lineTo(...val);
+	
+							if (coords.length === index + 1) {
+								// context.fillStyle = 'blue';
+								context.fill();
+							}
+						})
+					}
+				}
+			// }
 		}
 	};
 
-	const bulletVerticalCollisionHandler = (
+	const isBulletCollidedVertically = (
 		id: string,
 		bullet_x: number,
 		bullet_y: number,
@@ -710,15 +764,20 @@ export const Root = () => {
 	) => {
 		const did_not_collide = damage_coordinates.find(([obj_x_pos, obj_y_pos]) => obj_y_pos === bullet_y && bullet_x >= obj_x_pos);
 
-		if (!did_not_collide) {
+		if (did_not_collide) {
+			return false;
+		} else {
 			bullets_collection.current = bullets_collection.current.map(bullet => ({
 				...bullet,
 				collided: id === bullet.id
 			}));
+			// console.log(bullets_collection.current);
+
+			return true;
 		}
 	};
 
-	const getBulletCollisionCoordinates = (bullets: bullet[]) => {
+	const bulletsCollisionHandling = (bullets: bullet[]) => {
 		GRID_ELEMENTS_LEVEL1.forEach((row, row_index) => {
 			return row.forEach((cell, cell_index) => {
 				const {
@@ -748,7 +807,8 @@ export const Root = () => {
 									element_pos_y,
 									sprite_width,
 									sprite_height,
-									damage_coordinates
+									damage_coordinates,
+									cell
 								);
 								break;
 						
@@ -767,6 +827,8 @@ export const Root = () => {
 			clearOldBulletsPositions(bullets_collection.current);
 			bullets_collection.current = updateBulletsPositions(bullets_collection.current);
 			renderBullet(bullets_collection.current);
+
+			bulletsCollisionHandling(bullets_collection.current);
 		}
 	};
 
