@@ -388,7 +388,7 @@ export const Root = () => {
 				break;
 		
 			default:
-				tank_direction_ref.current = tank_direction_ref.current;
+				// tank_direction_ref.current = tank_direction_ref.current;
 				break;
 		}
 	}
@@ -620,11 +620,22 @@ export const Root = () => {
 	};
 
 	const deleteOutOfBoardBullets = (bullets: bullet[]) => {
+		return bullets.filter(blt => {
+			if (blt.bullet_x >= board_width || blt.bullet_y >= board_height || blt.bullet_x <= 0 || blt.bullet_y <= 0) {
+				clearOldBulletsPositions([blt]);
+
+				return false;
+			}
+			return true;
+		});
+	};
+
+	const deleteCollidedBullets = (bullets: bullet[]) => {
 		return bullets.filter(({
-			bullet_x,
-			bullet_y,
-		}) => !(bullet_x >= board_width || bullet_y >= board_height || bullet_x <= 0 || bullet_y <= 0));
+			collided,
+		}) => !collided);
 	}
+
 	const updateBulletsPositions = (bullets: bullet[]) => {
 		return bullets.map(bullet => {
 			switch (bullet.direction) {
@@ -717,7 +728,10 @@ export const Root = () => {
 
 	const bulletReachElementHandler = (
 		damage_name: string,
-		cell: gridElementMethods
+		cell: gridElementMethods,
+		bullet_x: number,
+		bullet_y: number,
+		direction: string
 	) => {
 		const canvas = canvas_ref.current;
 		const context = canvas.getContext('2d');
@@ -738,6 +752,10 @@ export const Root = () => {
 					context.fill();
 				}
 			});
+
+			clearOldBulletsPositions(bullets_collection.current);
+			renderBulletExplosion(bullet_x, bullet_y, direction);
+			bullets_collection.current = deleteCollidedBullets(bullets_collection.current);
 		}
 	};
 
@@ -797,7 +815,10 @@ export const Root = () => {
 								if (is_collided) {
 									bulletReachElementHandler(
 										damage_name,
-										cell
+										cell,
+										bullet_x,
+										bullet_y,
+										direction
 									);
 								}
 								break;
@@ -812,7 +833,10 @@ export const Root = () => {
 									if (is_collided) {
 										bulletReachElementHandler(
 											damage_name,
-											cell
+											cell,
+											bullet_x,
+											bullet_y + BULLETS_HEIGHT,
+											direction
 										);
 									}
 									break;
@@ -877,7 +901,6 @@ export const Root = () => {
 					}	
 				}
 
-				// clearScreen(tank_x - 1, tank_y, tank_speed_ref.current, sprite_element_width);
 				return {
 					tank_x: tank_x >= right_edge ? right_edge : tank_x + tank_speed_ref.current,
 					tank_y: tank_y + adjusted_value
@@ -897,7 +920,7 @@ export const Root = () => {
 						tank_y: tank_y
 					}	
 				}
-				// clearScreen(tank_x, tank_y - 1, sprite_element_width, tank_speed_ref.current);
+
 				return {
 					tank_x: tank_x + adjusted_value,
 					tank_y: tank_y >= bottom_edge ? bottom_edge : tank_y + tank_speed_ref.current
@@ -916,7 +939,6 @@ export const Root = () => {
 					}	
 				}
 
-				// clearScreen(tank_x + sprite_element_width, tank_y, tank_speed_ref.current, sprite_element_width);
 				return {
 					tank_x: tank_x <= 0 ? 0 : tank_x - tank_speed_ref.current,
 					tank_y: tank_y + adjusted_value
@@ -934,6 +956,35 @@ export const Root = () => {
 		if (context) {
 			context.clearRect(x, y, width, height);
 		}
+	};
+
+	const renderBulletExplosion = (bullet_x: number, bullet_y: number, direction: string) => {
+		const canvas = canvas_ref.current;
+		const context = canvas.getContext('2d');
+		const { images } = sprite;
+		const bullet_img_name = 'bullet_explosion_1';
+		const { width: explosion_width, height: explosion_height } = images[bullet_img_name];
+		let x_axis_point = bullet_x;
+		let y_axis_point = bullet_y;
+		console.log(explosion_width);
+		switch (direction) {
+			case DIRECTIONS.UP:
+				x_axis_point = bullet_x - explosion_width / 2 + BULLETS_WIDTH / 2;
+				y_axis_point = bullet_y - BULLETS_HEIGHT;
+				break;
+			case DIRECTIONS.DOWN:
+				x_axis_point = bullet_x - explosion_width / 2 + BULLETS_WIDTH / 2;
+				y_axis_point = bullet_y - explosion_height + BULLETS_HEIGHT;
+				break;
+		
+			default:
+				break;
+		}
+
+		context.drawImage(
+			images[bullet_img_name],
+			x_axis_point, y_axis_point
+		);
 	};
 
 	const renderTank = (
