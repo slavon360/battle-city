@@ -11,7 +11,8 @@ import {
 	DIRECTIONS,
 	KEYBOARD_KEY_SPACE,
 	FULL_STATE_VALUE,
-	BULLETS_WIDTH
+	BULLETS_WIDTH,
+	BULLETS_HEIGHT
 	// SPRITES_ELEMENTS
 } from '../../utils/common-data';
 // import canvasContext from '../../context/canvas-context';
@@ -90,7 +91,7 @@ interface bulletRef {
 }
 
 interface gridElementMethods {
-	getDamageName: Function,
+	getDamageNameOnVerticalDirection: Function,
 	setDamageLevel: Function,
 	getDamageCoordinates: Function
 }
@@ -584,23 +585,23 @@ export const Root = () => {
 				new_bullet = {
 					...new_bullet,
 					direction: tank_direction,
-					bullet_y: tank_coordinates.tank_y - 4,
-					bullet_x: tank_coordinates.tank_x + sprite_element_width / 2 - 4
+					bullet_y: tank_coordinates.tank_y - BULLETS_HEIGHT / 2,
+					bullet_x: tank_coordinates.tank_x + sprite_element_width / 2 - BULLETS_WIDTH / 2
 				}
 				break;
 			case DIRECTIONS.DOWN:
 				new_bullet = {
 					...new_bullet,
 					direction: tank_direction,
-					bullet_y: tank_coordinates.tank_y + sprite_element_width + 4,
-					bullet_x: tank_coordinates.tank_x + sprite_element_width / 2 - 4
+					bullet_y: tank_coordinates.tank_y + sprite_element_width - BULLETS_HEIGHT / 2,
+					bullet_x: tank_coordinates.tank_x + sprite_element_width / 2 - BULLETS_WIDTH / 2
 				}
 				break;
 			case DIRECTIONS.LEFT:
 				new_bullet = {
 					...new_bullet,
 					direction: tank_direction,
-					bullet_y: tank_coordinates.tank_y + sprite_element_width / 2 - 4,
+					bullet_y: tank_coordinates.tank_y + sprite_element_width / 2 - BULLETS_HEIGHT / 2,
 					bullet_x: tank_coordinates.tank_x - 4
 				}
 				break;
@@ -608,7 +609,7 @@ export const Root = () => {
 				new_bullet = {
 					...new_bullet,
 					direction: tank_direction,
-					bullet_y: tank_coordinates.tank_y + sprite_element_width / 2 - 4,
+					bullet_y: tank_coordinates.tank_y + sprite_element_width / 2 - BULLETS_HEIGHT / 2,
 					bullet_x: tank_coordinates.tank_x + sprite_element_width
 				}
 				break;
@@ -697,6 +698,14 @@ export const Root = () => {
 		return bullet_y > element_pos_y && bullet_y <= element_pos_y + element_height;
 	};
 
+	const isBulletReachElementOnYAxisFromTop = (
+		bullet_y: number,
+		element_pos_y: number,
+		element_height: number
+	) => {
+		return bullet_y >= element_pos_y && bullet_y < element_pos_y + element_height;
+	};
+
 	const isBulletReachElementOnXAxis = (
 		bullet_x: number,
 		element_pos_x: number,
@@ -706,53 +715,29 @@ export const Root = () => {
 		return (bullet_x + BULLETS_WIDTH) >= element_pos_x && bullet_x <= (element_pos_x + element_width);
 	};
 
-	const bulletReachElementFromBottomHandler = (
-		id: string,
-		bullet_x: number,
-		bullet_y: number,
-		element_pos_x: number,
-		element_pos_y: number,
-		element_width: number,
-		element_height: number,
-		damage_coordinates: number[][],
+	const bulletReachElementHandler = (
+		damage_name: string,
 		cell: gridElementMethods
 	) => {
-		if (
-			isBulletReachElementOnYAxisFromBottom(bullet_y, element_pos_y, element_height) &&
-			isBulletReachElementOnXAxis(bullet_x, element_pos_x, element_width)
-		) {
-			// if (isBulletReachElementToLeftSide(bullet_x, element_pos_x, element_width)) {
-
-			// } else if (isBulletReachElementToCenterSide(bullet_x, element_pos_x, element_width)) {
-
-			// } else if (isBulletReachElementToRightSide(bullet_x, element_pos_x, element_width)) {
-				const collided = isBulletCollidedVertically(id, bullet_x, bullet_y, damage_coordinates);
-
-				if (collided) {
-					const canvas = canvas_ref.current;
-					const context = canvas.getContext('2d');
-					const { images } = sprite;
-					const damage_name = cell.getDamageName([bullet_x, bullet_y]);
-					const damage_state = cell.setDamageLevel(damage_name);
-					const damage_coordinates = cell.getDamageCoordinates();
-					
-					if (damage_state < FULL_STATE_VALUE) {
-						context.beginPath();
-						damage_coordinates.forEach((val: number[], index: number, coords: Array<number>) => {
-							if (index % 4 === 0) {
-								context.moveTo(...val);
-							}
-	
-							context.lineTo(...val);
-	
-							if (coords.length === index + 1) {
-								// context.fillStyle = 'blue';
-								context.fill();
-							}
-						})
-					}
+		const canvas = canvas_ref.current;
+		const context = canvas.getContext('2d');
+		const damage_state = cell.setDamageLevel(damage_name);
+		const damage_coordinates = cell.getDamageCoordinates();
+		
+		// console.log(damage_name, GRID_ELEMENTS_LEVEL1);
+		if (damage_state < FULL_STATE_VALUE) {
+			context.beginPath();
+			damage_coordinates.forEach((val: number[], index: number, coords: Array<number>) => {
+				if (index % 4 === 0) {
+					context.moveTo(...val);
 				}
-			// }
+
+				context.lineTo(...val);
+
+				if (coords.length === index + 1) {
+					context.fill();
+				}
+			});
 		}
 	};
 
@@ -790,6 +775,9 @@ export const Root = () => {
 
 				if (type_name === TYPES.BRICK) {
 					const damage_coordinates = cell.getDamageCoordinates();
+					let is_collided;
+					let damage_name;
+					let from_bottom;
 
 					bullets.forEach(({
 						id,
@@ -799,18 +787,35 @@ export const Root = () => {
 					}) => {
 						switch (direction) {
 							case DIRECTIONS.UP:
-								bulletReachElementFromBottomHandler(
-									id,
-									bullet_x,
-									bullet_y,
-									element_pos_x,
-									element_pos_y,
-									sprite_width,
-									sprite_height,
-									damage_coordinates,
-									cell
-								);
+								from_bottom = true;
+
+								is_collided = isBulletReachElementOnYAxisFromBottom(bullet_y, element_pos_y, sprite_height) &&
+											isBulletReachElementOnXAxis(bullet_x, element_pos_x, sprite_width) &&
+											isBulletCollidedVertically(id, bullet_x, bullet_y, damage_coordinates);
+								damage_name = cell.getDamageNameOnVerticalDirection([bullet_x, bullet_y], from_bottom);
+
+								if (is_collided) {
+									bulletReachElementHandler(
+										damage_name,
+										cell
+									);
+								}
 								break;
+							case DIRECTIONS.DOWN:
+									from_bottom = false;
+	
+									is_collided = isBulletReachElementOnYAxisFromTop(bullet_y + BULLETS_HEIGHT, element_pos_y, sprite_height) &&
+												isBulletReachElementOnXAxis(bullet_x, element_pos_x, sprite_width) &&
+												isBulletCollidedVertically(id, bullet_x, bullet_y + BULLETS_HEIGHT, damage_coordinates);
+									damage_name = cell.getDamageNameOnVerticalDirection([bullet_x, bullet_y + BULLETS_HEIGHT], from_bottom);
+	
+									if (is_collided) {
+										bulletReachElementHandler(
+											damage_name,
+											cell
+										);
+									}
+									break;
 						
 							default:
 								break;
