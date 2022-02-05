@@ -118,7 +118,7 @@ class GridElement {
 				adjusted_bullet_x === (sprite_element_width / 2 - BULLETS_WIDTH / 2)) ||
 			(x3 === sprite_element_width && x4 === 0 && adjusted_bullet_x >= x4 &&
 				adjusted_bullet_x === (sprite_element_width / 2 - BULLETS_WIDTH / 2) &&
-				adjusted_bullet_x <= sprite_element_width / 1.3);
+				adjusted_bullet_x <= Math.floor(sprite_element_width / 1.3));
 
 			const bullet_is_on_y_axis = from_bottom ? (adjusted_bullet_y < y1 || adjusted_bullet_y < y4) 
 				: (adjusted_bullet_y > y1 && adjusted_bullet_y < y4);
@@ -134,11 +134,55 @@ class GridElement {
 		return damage_name;
 	}
 
-	setDamageLevel(damage: string) {
-		// if (bullet_coordinates) {
+	setDamageLevel(damage_name: string) {
+		const TOP = 'TOP';
+		const BOTTOM = 'BOTTOM';
+		const RIGHT = 'RIGHT';
+		const LEFT = 'LEFT';
+		let damage_names = ['INTACT'];
 
-		// }
-	
+		switch (true) {
+			case !damage_name.includes('_') && damage_name.includes(TOP):
+				damage_names = [
+					damage_name.replace(TOP, `${TOP}_${RIGHT}`),
+					damage_name.replace(TOP, `${TOP}_${LEFT}`)
+				]
+				break;
+			case !damage_name.includes('_') && damage_name.includes(BOTTOM):
+				damage_names = [
+					damage_name.replace(BOTTOM, `${BOTTOM}_${RIGHT}`),
+					damage_name.replace(BOTTOM, `${BOTTOM}_${LEFT}`)
+				]
+				break;
+			case !damage_name.includes('_') && damage_name.includes(RIGHT):
+				damage_names = [
+					damage_name.replace(RIGHT, `${RIGHT}_${TOP}`),
+					damage_name.replace(RIGHT, `${RIGHT}_${BOTTOM}`)
+				]
+				break;
+			case !damage_name.includes('_') && damage_name.includes(LEFT):
+				damage_names = [
+					damage_name.replace(LEFT, `${LEFT}_${TOP}`),
+					damage_name.replace(LEFT, `${LEFT}_${BOTTOM}`)
+				]
+				break;
+			// case damage_name.includes('_'):
+			// 	damage_names = [ damage_name.replace('_', `_${TOP}`) ]
+			// 	break;
+			default: damage_names = [];
+				break;
+		}
+
+		this.state =  this.updateDamages(damage_name);
+
+		damage_names.forEach(damage_name => this.updateDamages(damage_name));
+
+		return this.state;
+	}
+
+	updateDamages(damage: string) {	
+		let state = this.state;
+
 		if (!this.damages.includes(damage) && damage) {
 			this.damages = [ ...this.damages, damage ];
 			this._damage_coordinates= [
@@ -147,152 +191,170 @@ class GridElement {
 			];
 			switch (damage) {
 				case DAMAGE_LEVEL.LEFT1X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.LEFT_TOP1X) && !this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM1X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.LEFT2X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.LEFT_TOP2X) && !this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM2X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.LEFT3X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.LEFT_TOP3X) && !this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM3X)
+					? 2 : 1;
 
 				case DAMAGE_LEVEL.LEFT4X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.LEFT_TOP4X) && !this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM4X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.RIGHT1X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP1X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM1X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.RIGHT2X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP2X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM2X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.RIGHT3X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP3X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM3X)
+					? 2 : 1;
 
 				case DAMAGE_LEVEL.RIGHT4X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP4X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM4X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.TOP1X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.TOP_LEFT1X) && !this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT1X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.TOP2X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.TOP_LEFT2X) && !this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT2X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.TOP3X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.TOP_LEFT3X) && !this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT3X)
+					? 2 : 1;
 
 				case DAMAGE_LEVEL.TOP4X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.TOP_LEFT4X) && !this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT4X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.BOTTOM1X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT1X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT1X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.BOTTOM2X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT2X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT2X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.BOTTOM3X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT3X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT3X)
+					? 2 : 1;
 
 				case DAMAGE_LEVEL.BOTTOM4X:
-					return this.state -= 2;
+					return state -= !this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT4X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT4X)
+					? 2 : 1;
 					
 				case DAMAGE_LEVEL.TOP_LEFT1X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_LEFT2X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_LEFT3X:
-					return this.state -= 1;
+					return state -= 1;
 				
 				case DAMAGE_LEVEL.TOP_LEFT4X: 
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_RIGHT1X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_RIGHT2X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_RIGHT3X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_RIGHT4X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_LEFT1X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_LEFT2X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_LEFT3X:
-					return this.state -= 1;
+					return state -= 1;
 
 				case DAMAGE_LEVEL.BOTTOM_LEFT4X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_RIGHT1X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_RIGHT2X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_RIGHT3X:
-					return this.state -= 1;
+					return state -= 1;
 
 				case DAMAGE_LEVEL.BOTTOM_RIGHT4X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_TOP1X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_TOP2X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_TOP3X:
-					return this.state -= 1;
+					return state -= 1;
 
 				case DAMAGE_LEVEL.LEFT_TOP4X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_BOTTOM1X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_BOTTOM2X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_BOTTOM3X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_BOTTOM4X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_TOP1X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_TOP2X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_TOP3X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_TOP4X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_BOTTOM1X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_BOTTOM2X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_BOTTOM3X:
-					return this.state -= 1;
+					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_BOTTOM4X:
-					return this.state -= 1;
+					return state -= 1;
 					
-				default: return this.state;
+				default: return state;
 			}
 		}
+
+		return state;
 	}
 }
 
@@ -376,26 +438,26 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	[DAMAGE_LEVEL.TOP3X]: [
 		[0, sprite_element_height / 2],
 		[sprite_element_width, sprite_element_height / 2],
-		[sprite_element_width, sprite_element_height / 1.3],
-		[0, sprite_element_height / 1.3]
+		[sprite_element_width, Math.floor(sprite_element_height / 1.3)],
+		[0, Math.floor(sprite_element_height / 1.3)]
 	],
 	[DAMAGE_LEVEL.TOP4X]: [
-		[0, sprite_element_height / 1.3],
-		[sprite_element_width, sprite_element_height / 1.3],
+		[0, Math.floor(sprite_element_height / 1.3)],
+		[sprite_element_width, Math.floor(sprite_element_height / 1.3)],
 		[sprite_element_width, sprite_element_height],
 		[0, sprite_element_height]
 	],
 	[DAMAGE_LEVEL.BOTTOM1X]: [
-		[0, sprite_element_height / 1.3],
-		[sprite_element_width, sprite_element_height / 1.3],
+		[0, Math.floor(sprite_element_height / 1.3)],
+		[sprite_element_width, Math.floor(sprite_element_height / 1.3)],
 		[sprite_element_width, sprite_element_height],
 		[0, sprite_element_height]
 	],
 	[DAMAGE_LEVEL.BOTTOM2X]: [
 		[0, sprite_element_height / 2],
 		[sprite_element_width, sprite_element_height / 2],
-		[sprite_element_width, sprite_element_height / 1.3],
-		[0, sprite_element_height / 1.3]
+		[sprite_element_width, Math.floor(sprite_element_height / 1.3)],
+		[0, Math.floor(sprite_element_height / 1.3)]
 	],
 	[DAMAGE_LEVEL.BOTTOM3X]: [
 		[0, sprite_element_height / 4],
@@ -423,8 +485,8 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	// ],
 	// [DAMAGE_LEVEL.LEFT3X]: [
 	// 	[0, 0],
-	// 	[sprite_element_width / 1.3, 0],
-	// 	[sprite_element_width / 1.3, sprite_element_height],
+	// 	[Math.floor(sprite_element_width / 1.3), 0],
+	// 	[Math.floor(sprite_element_width / 1.3), sprite_element_height],
 	// 	[0, sprite_element_height]
 	// ],
 	// [DAMAGE_LEVEL.LEFT4X]: [
@@ -447,8 +509,8 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	],
 	[DAMAGE_LEVEL.RIGHT3X]: [
 		[sprite_element_width, 0],
-		[sprite_element_width / 1.3, 0],
-		[sprite_element_width / 1.3, sprite_element_height],
+		[Math.floor(sprite_element_width / 1.3), 0],
+		[Math.floor(sprite_element_width / 1.3), sprite_element_height],
 		[sprite_element_width, sprite_element_height]
 	],
 	// [DAMAGE_LEVEL.RIGHT4X]: [
@@ -472,12 +534,12 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	[DAMAGE_LEVEL.TOP_LEFT3X]: [
 		[0, sprite_element_height / 2],
 		[sprite_element_width / 2, sprite_element_height / 2],
-		[sprite_element_width / 2, sprite_element_height / 1.3],
-		[0, sprite_element_height / 1.3]
+		[sprite_element_width / 2, Math.floor(sprite_element_height / 1.3)],
+		[0, Math.floor(sprite_element_height / 1.3)]
 	],
 	[DAMAGE_LEVEL.TOP_LEFT4X]: [
-		[0, sprite_element_height / 1.3],
-		[sprite_element_width / 2, sprite_element_height / 1.3],
+		[0, Math.floor(sprite_element_height / 1.3)],
+		[sprite_element_width / 2, Math.floor(sprite_element_height / 1.3)],
 		[sprite_element_width / 2, sprite_element_height],
 		[0, sprite_element_height]
 	],
@@ -496,24 +558,24 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	[DAMAGE_LEVEL.TOP_RIGHT3X]: [
 		[sprite_element_width / 2, sprite_element_height / 2],
 		[sprite_element_width, sprite_element_height / 2],
-		[sprite_element_width, sprite_element_height / 1.3],
-		[sprite_element_width / 2, sprite_element_height / 1.3]
+		[sprite_element_width, Math.floor(sprite_element_height / 1.3)],
+		[sprite_element_width / 2, Math.floor(sprite_element_height / 1.3)]
 	],
 	[DAMAGE_LEVEL.TOP_RIGHT4X]: [
-		[sprite_element_width / 2, sprite_element_height / 1.3],
-		[sprite_element_width, sprite_element_height / 1.3],
+		[sprite_element_width / 2, Math.floor(sprite_element_height / 1.3)],
+		[sprite_element_width, Math.floor(sprite_element_height / 1.3)],
 		[sprite_element_width, sprite_element_height],
 		[sprite_element_width / 2, sprite_element_height]
 	],
 	[DAMAGE_LEVEL.BOTTOM_LEFT1X]: [
 		[0, sprite_element_height],
 		[sprite_element_width / 2, sprite_element_height],
-		[sprite_element_width / 2, sprite_element_height / 1.3],
-		[0, sprite_element_height / 1.3]
+		[sprite_element_width / 2, Math.floor(sprite_element_height / 1.3)],
+		[0, Math.floor(sprite_element_height / 1.3)]
 	],
 	[DAMAGE_LEVEL.BOTTOM_LEFT2X]: [
-		[0, sprite_element_height / 1.3],
-		[sprite_element_width / 2, sprite_element_height / 1.3],
+		[0, Math.floor(sprite_element_height / 1.3)],
+		[sprite_element_width / 2, Math.floor(sprite_element_height / 1.3)],
 		[sprite_element_width / 2, sprite_element_height / 2],
 		[0, sprite_element_height / 2]
 	],
@@ -532,8 +594,8 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	[DAMAGE_LEVEL.BOTTOM_RIGHT1X]: [
 		[sprite_element_width, sprite_element_height],
 		[sprite_element_width / 2, sprite_element_height],
-		[sprite_element_width / 2, sprite_element_height / 1.3],
-		[sprite_element_width, sprite_element_height / 1.3]
+		[sprite_element_width / 2, Math.floor(sprite_element_height / 1.3)],
+		[sprite_element_width, Math.floor(sprite_element_height / 1.3)]
 	],
 	[DAMAGE_LEVEL.BOTTOM_RIGHT2X]: [
 		[sprite_element_width, sprite_element_height],
@@ -568,8 +630,8 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	// [DAMAGE_LEVEL.LEFT_TOP3X]: [
 	// 	[0, 0],
 	// 	[0, sprite_element_height / 2],
-	// 	[sprite_element_width / 1.3, sprite_element_height / 2],
-	// 	[sprite_element_width / 1.3, 0]
+	// 	[Math.floor(sprite_element_width / 1.3), sprite_element_height / 2],
+	// 	[Math.floor(sprite_element_width / 1.3), 0]
 	// ],
 	// [DAMAGE_LEVEL.LEFT_TOP4X]: [
 	// 	[0, 0],
@@ -592,19 +654,19 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	// [DAMAGE_LEVEL.LEFT_BOTTOM3X]: [
 	// 	[0, sprite_element_height / 2],
 	// 	[0, sprite_element_height],
-	// 	[sprite_element_width / 1.3, sprite_element_height],
-	// 	[sprite_element_width / 1.3, sprite_element_height / 2]
+	// 	[Math.floor(sprite_element_width / 1.3), sprite_element_height],
+	// 	[Math.floor(sprite_element_width / 1.3), sprite_element_height / 2]
 	// ],
 	// [DAMAGE_LEVEL.LEFT_BOTTOM4X]: [
 	// 	[0, sprite_element_height / 2],
 	// 	[0, sprite_element_height],
-	// 	[sprite_element_width / 1.3, sprite_element_height],
-	// 	[sprite_element_width / 1.3, sprite_element_height / 2]
+	// 	[Math.floor(sprite_element_width / 1.3), sprite_element_height],
+	// 	[Math.floor(sprite_element_width / 1.3), sprite_element_height / 2]
 	// ],
 	[DAMAGE_LEVEL.RIGHT_TOP1X]: [
 		[sprite_element_width, 0],
-		[sprite_element_width / 1.3, 0],
-		[sprite_element_width / 1.3, sprite_element_height / 2],
+		[Math.floor(sprite_element_width / 1.3), 0],
+		[Math.floor(sprite_element_width / 1.3), sprite_element_height / 2],
 		[sprite_element_width, sprite_element_height / 2]
 	],
 	[DAMAGE_LEVEL.RIGHT_TOP2X]: [
@@ -628,8 +690,8 @@ export const DAMAGE_LEVEL_COORDINATES = {
 	[DAMAGE_LEVEL.RIGHT_BOTTOM1X]: [
 		[sprite_element_width, sprite_element_height / 2],
 		[sprite_element_width, sprite_element_height],
-		[sprite_element_width / 1.3, sprite_element_height],
-		[sprite_element_width / 1.3, sprite_element_height / 2]
+		[Math.floor(sprite_element_width / 1.3), sprite_element_height],
+		[Math.floor(sprite_element_width / 1.3), sprite_element_height / 2]
 	],
 	[DAMAGE_LEVEL.RIGHT_BOTTOM2X]: [
 		[sprite_element_width, sprite_element_height / 2],

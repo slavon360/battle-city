@@ -754,7 +754,7 @@ export const Root = () => {
 			});
 
 			clearOldBulletsPositions(bullets_collection.current);
-			renderBulletExplosion(bullet_x, bullet_y, direction);
+			// renderBulletExplosion(bullet_x, bullet_y, direction);
 			bullets_collection.current = deleteCollidedBullets(bullets_collection.current);
 		}
 	};
@@ -765,7 +765,14 @@ export const Root = () => {
 		bullet_y: number,
 		damage_coordinates: number[][]
 	) => {
-		const did_not_collide = damage_coordinates.find(([obj_x_pos, obj_y_pos]) => obj_y_pos === bullet_y && bullet_x >= obj_x_pos);
+		const did_not_collide = damage_coordinates.find(([obj_x_pos, obj_y_pos], index, arr) => {
+			if (index && (index + 1) % 4 === 0) {
+				const [prev_obj_x_pos, unnecessary_y] = arr[index - 1];
+				const [unnecessary_x, prev_obj_y_pos] = arr[index - 2];
+				console.log(bullet_x, bullet_y);
+				return (obj_y_pos >= bullet_y) && (prev_obj_y_pos <= bullet_y) && bullet_x <= prev_obj_x_pos && bullet_x >= obj_x_pos;
+			}
+		});
 
 		if (did_not_collide) {
 			return false;
@@ -774,10 +781,13 @@ export const Root = () => {
 				...bullet,
 				collided: id === bullet.id
 			}));
-			// console.log(bullets_collection.current);
 
 			return true;
 		}
+	};
+
+	const isNewDamageOnTheElement = (damages: (string|undefined)[], damage_name: string) => {
+		return damage_name && !damages.includes(damage_name);
 	};
 
 	const bulletsCollisionHandling = (bullets: bullet[]) => {
@@ -806,13 +816,18 @@ export const Root = () => {
 						switch (direction) {
 							case DIRECTIONS.UP:
 								from_bottom = true;
+								damage_name = cell.getDamageNameOnVerticalDirection([bullet_x, bullet_y], from_bottom);
 
 								is_collided = isBulletReachElementOnYAxisFromBottom(bullet_y, element_pos_y, sprite_height) &&
 											isBulletReachElementOnXAxis(bullet_x, element_pos_x, sprite_width) &&
-											isBulletCollidedVertically(id, bullet_x, bullet_y, damage_coordinates);
-								damage_name = cell.getDamageNameOnVerticalDirection([bullet_x, bullet_y], from_bottom);
+											isNewDamageOnTheElement(cell.damages, damage_name);
 
+								console.log(damage_name, is_collided);
 								if (is_collided) {
+									bullets_collection.current = bullets_collection.current.map(bullet => ({
+										...bullet,
+										collided: id === bullet.id
+									}));
 									bulletReachElementHandler(
 										damage_name,
 										cell,
@@ -827,7 +842,7 @@ export const Root = () => {
 	
 									is_collided = isBulletReachElementOnYAxisFromTop(bullet_y + BULLETS_HEIGHT, element_pos_y, sprite_height) &&
 												isBulletReachElementOnXAxis(bullet_x, element_pos_x, sprite_width) &&
-												isBulletCollidedVertically(id, bullet_x, bullet_y + BULLETS_HEIGHT, damage_coordinates);
+												isBulletCollidedVertically(id, bullet_x + BULLETS_WIDTH / 2, bullet_y + BULLETS_HEIGHT, damage_coordinates);
 									damage_name = cell.getDamageNameOnVerticalDirection([bullet_x, bullet_y + BULLETS_HEIGHT], from_bottom);
 	
 									if (is_collided) {
@@ -858,6 +873,7 @@ export const Root = () => {
 			renderBullet(bullets_collection.current);
 
 			bulletsCollisionHandling(bullets_collection.current);
+			console.log(GRID_ELEMENTS_LEVEL1);
 		}
 	};
 
@@ -966,7 +982,7 @@ export const Root = () => {
 		const { width: explosion_width, height: explosion_height } = images[bullet_img_name];
 		let x_axis_point = bullet_x;
 		let y_axis_point = bullet_y;
-		console.log(explosion_width);
+		// console.log(explosion_width);
 		switch (direction) {
 			case DIRECTIONS.UP:
 				x_axis_point = bullet_x - explosion_width / 2 + BULLETS_WIDTH / 2;
