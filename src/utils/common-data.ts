@@ -180,7 +180,7 @@ class GridElement {
 		return this.state;
 	}
 
-	updateDamages(damage: string) {	
+	updateDamages(damage: string) {
 		let state = this.state;
 
 		if (!this.damages.includes(damage) && damage) {
@@ -191,163 +191,435 @@ class GridElement {
 			];
 			switch (damage) {
 				case DAMAGE_LEVEL.LEFT1X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_TOP1X) && this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM1X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.LEFT_TOP1X) && !this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM1X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.LEFT2X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_TOP2X) && this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM2X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.LEFT_TOP2X) && !this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM2X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.LEFT3X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_TOP3X) && this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM3X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.LEFT_TOP3X) && !this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM3X)
 					? 2 : 1;
 
 				case DAMAGE_LEVEL.LEFT4X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_TOP4X) && this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM4X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.LEFT_TOP4X) && !this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM4X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.RIGHT1X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP1X) && this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM1X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP1X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM1X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.RIGHT2X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP2X) && this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM2X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP2X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM2X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.RIGHT3X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP3X) && this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM3X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP3X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM3X)
 					? 2 : 1;
 
 				case DAMAGE_LEVEL.RIGHT4X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP4X) && this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM4X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP4X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM4X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.TOP1X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_LEFT1X) && this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT1X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.TOP_LEFT1X) && !this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT1X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.TOP2X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_LEFT2X) && this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT2X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.TOP_LEFT2X) && !this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT2X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.TOP3X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_LEFT3X) && this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT3X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.TOP_LEFT3X) && !this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT3X)
 					? 2 : 1;
 
 				case DAMAGE_LEVEL.TOP4X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_LEFT4X) && this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT4X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.TOP_LEFT4X) && !this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT4X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.BOTTOM1X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT1X) && this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT1X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT1X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT1X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.BOTTOM2X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT2X) && this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT2X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT2X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT2X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.BOTTOM3X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT3X) && this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT3X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT3X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT3X)
 					? 2 : 1;
 
 				case DAMAGE_LEVEL.BOTTOM4X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT4X) && this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT4X)) {
+						return state;
+					}
 					return state -= !this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT4X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT4X)
 					? 2 : 1;
 					
 				case DAMAGE_LEVEL.TOP_LEFT1X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT1X) && !this.damages.includes(DAMAGE_LEVEL.TOP1X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.TOP1X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.TOP1X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_LEFT2X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT2X) && !this.damages.includes(DAMAGE_LEVEL.TOP2X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.TOP2X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.TOP2X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_LEFT3X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT3X) && !this.damages.includes(DAMAGE_LEVEL.TOP3X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.TOP3X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.TOP3X)
+						];
+					}
 					return state -= 1;
 				
 				case DAMAGE_LEVEL.TOP_LEFT4X: 
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_RIGHT4X) && !this.damages.includes(DAMAGE_LEVEL.TOP4X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.TOP4X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.TOP4X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_RIGHT1X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_LEFT1X) && !this.damages.includes(DAMAGE_LEVEL.TOP1X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.TOP1X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.TOP1X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_RIGHT2X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_LEFT2X) && !this.damages.includes(DAMAGE_LEVEL.TOP2X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.TOP2X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.TOP2X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_RIGHT3X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_LEFT3X) && !this.damages.includes(DAMAGE_LEVEL.TOP3X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.TOP3X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.TOP3X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.TOP_RIGHT4X:
+					if (this.damages.includes(DAMAGE_LEVEL.TOP_LEFT4X) && !this.damages.includes(DAMAGE_LEVEL.TOP4X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.TOP4X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.TOP4X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_LEFT1X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT1X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM1X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.BOTTOM1X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.BOTTOM1X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_LEFT2X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT2X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM2X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.BOTTOM2X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.BOTTOM2X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_LEFT3X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT3X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM3X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.BOTTOM3X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.BOTTOM3X)
+						];
+					}
 					return state -= 1;
 
 				case DAMAGE_LEVEL.BOTTOM_LEFT4X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_RIGHT4X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM4X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.BOTTOM4X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.BOTTOM4X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_RIGHT1X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT1X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM1X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.BOTTOM1X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.BOTTOM1X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_RIGHT2X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT2X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM2X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.BOTTOM2X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.BOTTOM2X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.BOTTOM_RIGHT3X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT3X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM3X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.BOTTOM3X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.BOTTOM3X)
+						];
+					}
 					return state -= 1;
 
 				case DAMAGE_LEVEL.BOTTOM_RIGHT4X:
+					if (this.damages.includes(DAMAGE_LEVEL.BOTTOM_LEFT4X) && !this.damages.includes(DAMAGE_LEVEL.BOTTOM4X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.BOTTOM4X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.BOTTOM4X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_TOP1X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM1X) && !this.damages.includes(DAMAGE_LEVEL.LEFT1X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.LEFT1X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.LEFT1X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_TOP2X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM2X) && !this.damages.includes(DAMAGE_LEVEL.LEFT2X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.LEFT2X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.LEFT2X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_TOP3X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM3X) && !this.damages.includes(DAMAGE_LEVEL.LEFT3X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.LEFT3X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.LEFT3X)
+						];
+					}
 					return state -= 1;
 
 				case DAMAGE_LEVEL.LEFT_TOP4X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_BOTTOM4X) && !this.damages.includes(DAMAGE_LEVEL.LEFT4X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.LEFT4X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.LEFT4X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_BOTTOM1X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_TOP1X) && !this.damages.includes(DAMAGE_LEVEL.LEFT1X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.LEFT1X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.LEFT1X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_BOTTOM2X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_TOP2X) && !this.damages.includes(DAMAGE_LEVEL.LEFT2X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.LEFT2X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.LEFT2X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_BOTTOM3X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_TOP3X) && !this.damages.includes(DAMAGE_LEVEL.LEFT3X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.LEFT3X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.LEFT3X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.LEFT_BOTTOM4X:
+					if (this.damages.includes(DAMAGE_LEVEL.LEFT_TOP4X) && !this.damages.includes(DAMAGE_LEVEL.LEFT4X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.LEFT4X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.LEFT4X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_TOP1X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM1X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT1X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.RIGHT1X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.RIGHT1X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_TOP2X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM2X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT2X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.RIGHT2X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.RIGHT2X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_TOP3X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM3X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT3X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.RIGHT3X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.RIGHT3X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_TOP4X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_BOTTOM4X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT4X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.RIGHT4X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.RIGHT4X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_BOTTOM1X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP1X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT1X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.RIGHT1X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.RIGHT1X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_BOTTOM2X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP2X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT2X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.RIGHT2X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.RIGHT2X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_BOTTOM3X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP3X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT3X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.RIGHT3X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.RIGHT3X)
+						];
+					}
 					return state -= 1;
 					
 				case DAMAGE_LEVEL.RIGHT_BOTTOM4X:
+					if (this.damages.includes(DAMAGE_LEVEL.RIGHT_TOP4X) && !this.damages.includes(DAMAGE_LEVEL.RIGHT4X)) {
+						this.damages = [ ...this.damages, DAMAGE_LEVEL.RIGHT4X ];
+						this._damage_coordinates= [
+							...this._damage_coordinates,
+							...this.generateDamageCoordinates(DAMAGE_LEVEL.RIGHT4X)
+						];
+					}
 					return state -= 1;
 					
 				default: return state;

@@ -234,6 +234,9 @@ export const Root = () => {
 				const tank_x_end = tank_x + sprite_element_width;
 				const tank_y_end = tank_y + sprite_element_width;
 				
+				if (!cell.state) {
+					return false;
+				}
 				switch (direction) {
 					case 'ArrowUp':
 						if (
@@ -822,7 +825,6 @@ export const Root = () => {
 											isBulletReachElementOnXAxis(bullet_x, element_pos_x, sprite_width) &&
 											isNewDamageOnTheElement(cell.damages, damage_name);
 
-								console.log(damage_name, is_collided);
 								if (is_collided) {
 									bullets_collection.current = bullets_collection.current.map(bullet => ({
 										...bullet,
